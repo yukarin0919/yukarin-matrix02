@@ -1,903 +1,231 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ゆかりん 優先順位マトリックス</title>
+<title>ゆかりん マトリックス</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F7F6F3;--surface:#FFFFFF;--border:#E5E3DC;--border2:#CCC9BE;
+  --bg:#F7F6F3;--surface:#fff;--border:#E5E3DC;--border2:#CCC9BE;
   --text:#2C2B28;--text2:#6B6860;--text3:#9C9A94;
-  --pink:#d4547e;--teal:#0f6e56;--purple:#534ab7;--green:#3b6d11;
-  --radius:1rem;--font:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;
-  --scale:1.125;
+  --font:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;
 }
-html{font-size:calc(1rem * var(--scale))}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.3rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:0.9rem}
-.logo-icon{width:2.8rem;height:2.8rem;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:0.7rem;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.40rem}
-.logo-text{font-size:1.40rem;font-weight:600}.logo-sub{font-size:1rem;color:var(--text3)}
-.save-badge{font-size:1.10rem;color:var(--text3);padding:0.3rem 1rem;border:1px solid var(--border);border-radius:2rem;background:var(--bg);transition:all .3s}
-.save-badge.saved{color:#0F6E56;border-color:#2ECC71;background:#EDFFF5}
-.tabs{display:flex;padding:0 2rem;background:var(--surface);border-bottom:1px solid var(--border)}
-.tab{padding:1rem 1.6rem;font-size:1.30rem;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;font-family:var(--font)}
-.tab:hover{color:var(--text)}.tab.active{color:#764ba2;border-bottom-color:#764ba2}
-main{padding:1.6rem 2rem;max-width:140rem;margin:0 auto}
-
-/* HABIT SECTION */
-.habit-section{margin-bottom:1.6rem}
-.habit-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem}
-.habit-section-title{font-size:1.20rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-.habit-section-title.good{color:var(--purple)}.habit-section-title.ctrl{color:#c2410c}
-.habit-date-pill{font-size:1.10rem;color:var(--text3);background:var(--bg);padding:2px 1rem;border-radius:2rem;border:1px solid var(--border)}
-.habit-progress-wrap{background:#F0EFE9;border-radius:0.8rem;height:0.5rem;overflow:hidden;margin-bottom:0.8rem}
-.habit-progress-bar{height:100%;border-radius:0.8rem;transition:width .4s ease;width:0%}
-.habit-progress-bar.good{background:linear-gradient(90deg,#22c55e,#86efac)}
-.habit-progress-bar.ctrl{background:linear-gradient(90deg,#f97316,#fed7aa)}
-.habit-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
-@media(max-width:60rem){.habit-grid{grid-template-columns:1fr}}
-
-/* HABIT CARD */
-.habit-card{display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1.1rem;border-radius:0.9rem;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:all .18s;user-select:none}
-.habit-card:hover{border-color:var(--border2)}
-.habit-card.done{background:#f0fdf4;border-color:#86efac}
-.habit-card.done-ctrl{background:#fff7ed;border-color:#fdba74}
-.habit-box{width:1.8rem;height:1.8rem;border-radius:0.5rem;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:white;transition:all .18s}
-.habit-card.done .habit-box{background:#22c55e;border-color:#22c55e}
-.habit-card.done-ctrl .habit-box{background:#f97316;border-color:#f97316}
-.habit-check-svg{display:none}
-.habit-card.done .habit-check-svg,.habit-card.done-ctrl .habit-check-svg{display:block}
-.habit-icon{font-size:1.40rem;flex-shrink:0}
-.habit-label{flex:1;font-size:1.10rem;font-weight:500;color:var(--text);line-height:1.35}
-.habit-sub{font-size:1rem;color:var(--text3);font-weight:400}
-.habit-card.done .habit-label{text-decoration:line-through;color:var(--text3)}
-.habit-card.done-ctrl .habit-label{text-decoration:line-through;color:var(--text3)}
-
-/* CONGRATS */
-.habit-congrats{display:none;text-align:center;padding:1rem 1.4rem;border-radius:0.9rem;font-size:1.20rem;font-weight:500;margin-top:0.6rem;animation:popIn .3s ease}
-.habit-congrats.show{display:block}
-.habit-congrats.good{background:linear-gradient(135deg,#fdf4ff,#f0fdf4);border:1px solid #d8b4fe;color:#7c3aed}
-.habit-congrats.ctrl{background:linear-gradient(135deg,#fff7ed,#fef9c3);border:1px solid #fdba74;color:#c2410c}
-.habit-all-congrats{display:none;text-align:center;padding:1.4rem;border-radius:1.2rem;font-size:1.30rem;font-weight:600;margin-top:1rem;border:1px solid #d8b4fe;background:linear-gradient(135deg,#fdf4ff,#f0fff4,#fffbeb);color:#7c3aed;animation:popIn .4s ease}
-.habit-all-congrats.show{display:block}
-@keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-
-/* DIVIDER */
-.section-divider{height:1px;background:var(--border);margin:1.6rem 0}
-
-/* MATRIX */
-.legend{display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:1.2rem;align-items:center}
-.legend-title{font-size:1.10rem;color:var(--text3);font-weight:500}
-.tag-pill{display:inline-flex;align-items:center;font-size:1rem;font-weight:500;padding:2px 0.7rem;border-radius:1rem}
-.matrix-container{display:grid;grid-template-columns:2.2rem 1fr;gap:0;align-items:stretch}
-.axis-y{display:flex;flex-direction:column;gap:0.6rem;padding:0;justify-content:stretch}
-.axis-y-label{writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.90rem;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.axis-bottom{display:grid;grid-template-columns:2.2rem 1fr 1fr;gap:1rem;margin-top:0.5rem}
-.axis-col{text-align:center;font-size:0.90rem;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase}
-.quadrant{background:var(--surface);border:1px solid var(--border);border-radius:1.2rem;padding:1.1rem;min-height:16rem;transition:outline .1s}
-.quadrant.q1{border-top:0.3rem solid #FF6B6B}.quadrant.q2{border-top:0.3rem solid #2ECC71}
-.quadrant.q3{border-top:0.3rem solid #F39C12}.quadrant.q4{border-top:0.3rem solid var(--border2)}
-.quadrant.drag-over{outline:2px dashed #764ba2;outline-offset:2px;background:#F8F5FF}
-.q-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.9rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
-.q-title{font-size:1.20rem;font-weight:600}.q-count{font-size:1rem;color:var(--text3);background:var(--bg);padding:1px 0.6rem;border-radius:1rem;border:1px solid var(--border);margin-left:auto}
-.cards-area{display:flex;flex-direction:column;gap:0.5rem;min-height:3rem}
-
-/* CARD */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:0.8rem;padding:0.7rem 0.9rem;cursor:grab;position:relative;transition:box-shadow .15s,opacity .15s}
-.card:active{cursor:grabbing}.card.dragging{opacity:.35}
-.card.done .card-text-display{text-decoration:line-through;color:var(--text3)}
-.card-top{display:flex;align-items:flex-start;gap:0.5rem}
-.card-icon-btn{font-size:1.1rem;cursor:pointer;background:none;border:none;padding:0 0.1rem 0 0;flex-shrink:0;line-height:1.3;position:relative}
-.icon-picker{display:none;position:fixed;background:#fff;border:1px solid var(--border2);border-radius:0.8rem;padding:0.6rem;z-index:200;box-shadow:0 0.4rem 1.6rem rgba(0,0,0,.18);width:18rem;flex-wrap:wrap;gap:0.25rem}
-.icon-picker.open{display:flex}
-.icon-search{width:100%;border:1px solid var(--border2);border-radius:0.5rem;padding:0.3rem 0.5rem;font-size:0.9rem;font-family:var(--font);outline:none;margin-bottom:0.3rem;flex-shrink:0}
-.icon-search:focus{border-color:#764ba2}
-.icon-opt{font-size:1.3rem;cursor:pointer;padding:0.15rem 0.25rem;border-radius:0.4rem;border:none;background:none;transition:background .1s}
-.icon-opt:hover{background:var(--bg)}
-.card-check{flex-shrink:0;margin-top:2px;width:1.3rem;height:1.3rem;cursor:pointer;accent-color:#764ba2}
-.card-text-display{font-size:1.10rem;line-height:1.5;color:var(--text);flex:1;word-break:break-all;cursor:text;outline:none}
-.card-text-display:focus{background:#FAFAF8;border-radius:0.3rem;outline:1px solid #764ba2}
-.card-actions{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
-.card-btn{font-size:1rem;color:var(--text3);background:none;border:none;cursor:pointer;padding:1px 0.3rem;line-height:1;border-radius:0.3rem;opacity:0;transition:opacity .1s;font-family:var(--font)}
-.card:hover .card-btn{opacity:1}
-.card-footer{display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;flex-wrap:wrap}
-.card-tag{font-size:1rem;font-weight:500;padding:1px 0.5rem;border-radius:0.5rem}
-.card-priority{font-size:1rem;padding:1px 0.5rem;border-radius:0.5rem;font-weight:600}
-.priority-1{background:#FFEDEE;color:#C0392B}.priority-2{background:#FFF3E6;color:#7E3A00}
-.priority-3{background:#FFFBE6;color:#7D4E00}.priority-4{background:#EEF6FF;color:#0C447C}
-.priority-5{background:#F5F0FF;color:#4A235A}
-.card-drag{font-size:1.10rem;color:var(--text3);margin-left:auto;opacity:0;transition:opacity .1s}
-.card:hover .card-drag{opacity:1}
-.detail-toggle{display:flex;align-items:center;gap:0.4rem;font-size:1rem;color:var(--text3);cursor:pointer;padding:2px 0;background:none;border:none;font-family:var(--font);transition:color .1s}
-.detail-toggle:hover{color:var(--text2)}
-.detail-arrow{display:inline-block;transition:transform .2s;font-size:0.90rem}
-.detail-arrow.open{transform:rotate(90deg)}
-.detail-body{display:none;margin-top:0.4rem;padding:0.5rem 0.7rem;background:#FAFAF8;border-radius:0.6rem;border:1px solid var(--border)}
-.detail-body.open{display:block}
-.detail-textarea{width:100%;border:none;background:transparent;font-size:1.10rem;font-family:var(--font);color:var(--text2);resize:none;outline:none;line-height:1.5;min-height:4rem}
-.detail-textarea::placeholder{color:var(--text3)}
-.add-btn{display:flex;align-items:center;gap:0.4rem;font-size:1.10rem;color:var(--text3);border:1px dashed var(--border2);border-radius:0.6rem;padding:0.5rem 0.8rem;cursor:pointer;background:transparent;width:100%;margin-top:0.6rem;transition:all .1s;font-family:var(--font)}
-.add-btn:hover{background:var(--bg);color:var(--text)}
-.done-section{margin-top:1.4rem;background:var(--surface);border:1px solid var(--border);border-radius:1.2rem;padding:1.1rem}
-.done-section.drag-over{outline:2px dashed #764ba2;outline-offset:2px;background:#F8F5FF}
-.done-header{display:flex;align-items:center;gap:0.5rem;cursor:pointer;user-select:none}
-.done-title{font-size:1.20rem;font-weight:600;color:var(--text2)}
-.done-count{font-size:1rem;color:var(--text3);background:var(--bg);padding:1px 0.6rem;border-radius:1rem;border:1px solid var(--border);margin-left:auto}
-.done-toggle{font-size:1rem;color:var(--text3);margin-left:0.4rem;transition:transform .2s;display:inline-block}
-.done-toggle.open{transform:rotate(90deg)}
-.done-cards{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:1rem}
-.done-cards .card{max-width:22rem;cursor:grab}
-
-/* MODAL */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
-.modal-backdrop.open{display:flex}
-.modal{background:var(--surface);border-radius:1.4rem;padding:2rem;width:39rem;max-width:92vw;box-shadow:0 0.8rem 3.2rem rgba(0,0,0,.15)}
-.modal h3{font-size:1.40rem;font-weight:600;margin-bottom:1.2rem}
-.modal label{font-size:1.10rem;font-weight:500;color:var(--text2);display:block;margin-bottom:0.3rem;margin-top:1rem}
-.modal input,.modal select,.modal textarea{width:100%;border:1px solid var(--border2);border-radius:0.7rem;padding:0.7rem 0.9rem;font-size:1.20rem;font-family:var(--font);color:var(--text);background:var(--surface);outline:none;transition:border .1s}
-.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#764ba2}
-.modal textarea{height:6.5rem;resize:vertical}
-.modal-btns{display:flex;gap:0.7rem;margin-top:1.4rem;justify-content:flex-end}
-.btn{padding:0.7rem 1.6rem;border-radius:0.7rem;font-size:1.20rem;font-weight:500;cursor:pointer;border:none;transition:all .1s;font-family:var(--font)}
-.btn-ghost{background:none;border:1px solid var(--border2);color:var(--text2)}.btn-ghost:hover{background:var(--bg)}
-.btn-primary{background:#764ba2;color:#fff}.btn-primary:hover{background:#653d8f}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:26px;height:26px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+.logo-text{font-size:13px;font-weight:600}
+.logo-sub{font-size:10px;color:var(--text3)}
+#save-badge{font-size:11px;color:var(--text3);padding:3px 10px;border:1px solid var(--border);border-radius:20px;transition:all .3s}
+#save-badge.saved{color:#0F6E56;border-color:#2ECC71;background:#EDFFF5}
+.tabs{display:flex;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{padding:9px 14px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:var(--font)}
+.tab.active{color:#764ba2;border-bottom-color:#764ba2}
+.goals{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 16px}
+.goal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.goal-item{border-radius:8px;padding:6px 8px;font-size:11px}
+.goal-item.pink{background:#FFF0F5;border:1px solid #F9C0D0}
+.goal-item.teal{background:#EDFFF7;border:1px solid #9FE1CB}
+.goal-item.purple{background:#F3F0FF;border:1px solid #C5BAF5}
+.goal-item.amber{background:#FFF8EE;border:1px solid #FAC775}
+.goal-val{font-weight:600;font-size:11px}
+.goal-note{color:var(--text2);font-size:10px;margin-top:2px}
+main{padding:12px 16px}
 .page{display:none}.page.active{display:block}
-/* GOAL BANNER */
-#goal-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:0.8rem 2rem}
-.goal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem}
-@media(max-width:60rem){.goal-grid{grid-template-columns:repeat(2,1fr)}}
-.goal-item{border-radius:1rem;padding:0.7rem 1rem;display:flex;align-items:center;gap:0.7rem;border:1px solid transparent}
-.goal-item.pink{background:#FFF0F5;border-color:#F9C0D0}
-.goal-item.teal{background:#EDFFF7;border-color:#9FE1CB}
-.goal-item.purple{background:#F3F0FF;border-color:#C5BAF5}
-.goal-item.amber{background:#FFF8EE;border-color:#FAC775}
-.goal-icon{font-size:1.4rem;flex-shrink:0}
-.goal-val{font-size:0.85rem;font-weight:600;color:var(--text);line-height:1.2}
-.goal-note{font-size:0.72rem;color:var(--text2);line-height:1.4;margin-top:0.2rem}
-.goal-note strong{color:var(--text)}
-
-/* MATRIX AXIS LABELS */
-.matrix-labels-top{display:grid;grid-template-columns:3.2rem 1fr 1fr;gap:0.6rem;margin-bottom:0.4rem}
-.ml-corner{} 
-.ml-header{text-align:center;font-size:0.75rem;font-weight:700;padding:0.3rem 0.5rem;border-radius:0.5rem;letter-spacing:.02em}
-.ml-header.urgent-high{background:#FFEDEE;color:#C0392B}
-.ml-header.urgent-low{background:#EEF6FF;color:#0C447C}
-.axis-y{display:flex;flex-direction:column;gap:0.6rem;padding:0;justify-content:stretch}
-.axis-y-band{display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;border-radius:0.5rem;writing-mode:vertical-lr;transform:none;padding:0.5rem 0.25rem;min-height:0;flex:1;letter-spacing:.02em}
-.axis-y-band.imp-high{background:#FFEDEE;color:#C0392B}
-.axis-y-band.imp-low{background:#EEF6FF;color:#0C447C}
-.q-sub{font-size:0.68rem;color:var(--text3);margin:-4px 0 6px 0;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.legend{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;min-height:16px}
+.tag-pill{font-size:10px;font-weight:500;padding:1px 6px;border-radius:8px}
+.mlabels{display:grid;grid-template-columns:20px 1fr 1fr;gap:6px;margin-bottom:4px}
+.mlabel{text-align:center;font-size:10px;font-weight:700;padding:3px 5px;border-radius:5px}
+.mlabel.red{background:#FFEDEE;color:#C0392B}
+.mlabel.blue{background:#EEF6FF;color:#0C447C}
+.mwrap{display:grid;grid-template-columns:20px 1fr;gap:0}
+.yaxis{display:flex;flex-direction:column;gap:6px}
+.yband{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border-radius:4px;writing-mode:vertical-lr;padding:4px 2px;flex:1}
+.yband.red{background:#FFEDEE;color:#C0392B}
+.yband.blue{background:#EEF6FF;color:#0C447C}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quad{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;min-height:120px}
+.quad.q1{border-top:3px solid #FF6B6B}
+.quad.q2{border-top:3px solid #2ECC71}
+.quad.q3{border-top:3px solid #F39C12}
+.quad.q4{border-top:3px solid #CCC9BE}
+.quad.over{outline:2px dashed #764ba2;background:#F8F5FF}
+.qhead{display:flex;align-items:center;gap:4px;margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.qtitle{font-size:11px;font-weight:600;flex:1}
+.qcount{font-size:10px;color:var(--text3);background:var(--bg);padding:1px 5px;border-radius:8px;border:1px solid var(--border)}
+.qsub{font-size:9px;color:var(--text3);margin-bottom:6px}
+.carea{display:flex;flex-direction:column;gap:4px;min-height:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 8px;cursor:grab;user-select:none}
+.card.dragging{opacity:.4;cursor:grabbing}
+.card.done .ctext{text-decoration:line-through;color:var(--text3)}
+.ctop{display:flex;align-items:flex-start;gap:5px}
+.ccheck{width:13px;height:13px;flex-shrink:0;margin-top:1px;cursor:pointer;accent-color:#764ba2}
+.cicon{font-size:12px;flex-shrink:0;cursor:pointer;background:none;border:none;padding:0;line-height:1.3}
+.ctext{font-size:11px;line-height:1.45;flex:1;word-break:break-all;outline:none;cursor:text}
+.ctext:focus{background:#FAFAF8;border-radius:2px;outline:1px solid #764ba2}
+.cdel{font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;opacity:0;font-family:var(--font)}
+.card:hover .cdel{opacity:1}
+.cfoot{display:flex;align-items:center;gap:3px;margin-top:3px;flex-wrap:wrap}
+.ctag{font-size:10px;font-weight:500;padding:1px 4px;border-radius:4px}
+.cpri{font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600}
+.p1{background:#FFEDEE;color:#C0392B}.p2{background:#FFF3E6;color:#7E3A00}
+.p3{background:#FFFBE6;color:#7D4E00}.p4{background:#EEF6FF;color:#0C447C}
+.p5{background:#F5F0FF;color:#4A235A}
+.cmemo-toggle{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text3);cursor:pointer;background:none;border:none;font-family:var(--font);padding:2px 0}
+.cmemo-arrow{font-size:8px;transition:transform .2s}
+.cmemo-arrow.open{transform:rotate(90deg)}
+.cmemo-body{display:none;margin-top:3px;padding:4px 6px;background:#FAFAF8;border-radius:5px;border:1px solid var(--border)}
+.cmemo-body.open{display:block}
+.cmemo-ta{width:100%;border:none;background:transparent;font-size:10px;font-family:var(--font);color:var(--text2);resize:none;outline:none;line-height:1.4;min-height:28px}
+.addbtn{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);border:1px dashed var(--border2);border-radius:6px;padding:5px 8px;cursor:pointer;background:transparent;width:100%;margin-top:6px;font-family:var(--font)}
+.addbtn:hover{background:var(--bg)}
+.done-wrap{margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px}
+.done-wrap.over{outline:2px dashed #764ba2;background:#F8F5FF}
+.done-head{display:flex;align-items:center;gap:4px;cursor:pointer}
+.done-title{font-size:11px;font-weight:600;color:var(--text2);flex:1}
+.done-count{font-size:10px;color:var(--text3);background:var(--bg);padding:1px 5px;border-radius:8px;border:1px solid var(--border)}
+.done-arr{font-size:10px;color:var(--text3);transition:transform .2s}
+.done-arr.open{transform:rotate(90deg)}
+.done-cards{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.done-cards .card{max-width:200px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;padding:18px;width:320px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.modal h3{font-size:13px;font-weight:600;margin-bottom:10px}
+.modal label{font-size:10px;font-weight:500;color:var(--text2);display:block;margin-bottom:2px;margin-top:8px}
+.modal input,.modal select,.modal textarea{width:100%;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;font-size:11px;font-family:var(--font);color:var(--text);background:var(--surface);outline:none}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#764ba2}
+.modal textarea{height:50px;resize:vertical}
+.mbtns{display:flex;gap:6px;margin-top:12px;justify-content:flex-end}
+.mbtn{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;font-family:var(--font)}
+.mbtn.ghost{background:none;border:1px solid var(--border2);color:var(--text2)}
+.mbtn.primary{background:#764ba2;color:#fff}
+.ipicker{display:none;position:fixed;background:#fff;border:1px solid var(--border2);border-radius:8px;padding:6px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.18);width:160px;flex-wrap:wrap;gap:2px}
+.ipicker.open{display:flex}
+.iopt{font-size:14px;cursor:pointer;padding:2px;border-radius:3px;border:none;background:none}
+.iopt:hover{background:var(--bg)}
 </style>
 </head>
 <body>
+
 <header>
   <div class="logo">
     <div class="logo-icon">📋</div>
-    <div><div class="logo-text">ゆかりん 優先順位マトリックス</div><div class="logo-sub">金澤さんコンサル / 2026</div></div>
+    <div>
+      <div class="logo-text">ゆかりん 優先順位マトリックス</div>
+      <div class="logo-sub">金澤さんコンサル 2026</div>
+    </div>
   </div>
-  <span class="save-badge" id="save-badge">自動保存</span>
+  <span id="save-badge">自動保存</span>
 </header>
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('today',this)">📅 今日のマトリックス</button>
-  <button class="tab" onclick="switchTab('longterm',this)">🗓️ 長期マトリックス</button>
-</div>
-<!-- GOAL BANNER -->
-<div id="goal-banner">
+
+<div class="goals">
   <div class="goal-grid">
-    <div class="goal-item pink">
-      <div class="goal-icon">💍</div>
-      <div class="goal-val">結婚＆子供2人</div>
-      <div class="goal-note">Dine登録 → 出会い → 10月までに</div>
-    </div>
-    <div class="goal-item teal">
-      <div class="goal-icon">💰</div>
-      <div class="goal-val">月50万円安定</div>
-      <div class="goal-note">サブスク化・一気通貫・チーム化</div>
-    </div>
-    <div class="goal-item purple">
-      <div class="goal-icon">📸</div>
-      <div class="goal-val">インスタ目標</div>
-      <div class="goal-note" id="insta-goal-note">フォロワー <strong id="insta-fw">1,000</strong>人 → 問い合わせ <strong id="insta-inq">月5件</strong></div>
-    </div>
-    <div class="goal-item amber">
-      <div class="goal-icon">⚖️</div>
-      <div class="goal-val" id="weight-goal-val">7/9までに −2kg</div>
-      <div class="goal-note" id="weight-countdown"></div>
-    </div>
+    <div class="goal-item pink"><div class="goal-val">💍 結婚＆子供2人</div><div class="goal-note">Dine登録→10月までに出会い</div></div>
+    <div class="goal-item teal"><div class="goal-val">💰 月50万円安定</div><div class="goal-note">サブスク化・一気通貫</div></div>
+    <div class="goal-item purple"><div class="goal-val">📸 インスタ目標</div><div class="goal-note">フォロワー1,000人→月5件</div></div>
+    <div class="goal-item amber"><div class="goal-val">⚖️ 7/9までに−2kg</div><div class="goal-note" id="wgoal"></div></div>
   </div>
 </div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('today',this)">📅 今日</button>
+  <button class="tab" onclick="switchTab('longterm',this)">🗓️ 長期</button>
+</div>
+
 <main>
-
-<!-- TODAY -->
 <div id="today" class="page active">
-
-
-  <!-- MATRIX -->
-  <div class="legend" id="legend-today"></div>
-  <div class="matrix-labels-top">
-    <div class="ml-corner"></div>
-    <div class="ml-header urgent-high">🔴 緊急度：高い</div>
-    <div class="ml-header urgent-low">🔵 緊急度：低い</div>
-  </div>
-  <div class="matrix-container">
-    <div class="axis-y">
-      <div class="axis-y-band imp-high">重要度：高い</div>
-      <div class="axis-y-band imp-low">重要度：低い</div>
-    </div>
-    <div class="matrix-grid">
-      <div class="quadrant q1" data-matrix="today" data-zone="q1" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>🔥</span><span class="q-title">第1領域 — 今すぐやる</span><span class="q-count" id="count-today-q1">0</span></div>
-        <div class="q-sub">重要度：高い ✕ 緊急度：高い</div>
-        <div class="cards-area" id="area-today-q1">
-<div class="card" draggable="true" data-id="c1" data-text="7/2 あゆみさん訪問 — ヒアリング重視で行く" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="today" data-zone="q1" data-detail="提案書なしでOK。管理費が高い話を覚えておく。「ぴったりですね」のタイミングを逃さない。" data-icon="🤝">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🤝</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">7/2 あゆみさん訪問 — ヒアリング重視で行く</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">提案書なしでOK。管理費が高い話を覚えておく。「ぴったりですね」のタイミングを逃さない。</textarea>
-</div></div><div class="card" draggable="true" data-id="c2" data-text="7/2 デイズさん訪問 — 猫グッズを持参" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="today" data-zone="q1" data-detail="猫3匹の名前を確認。雑談から入る。「社長が事務作業から解放されたら何をしたい？」を聞く。" data-icon="🐱">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🐱</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">7/2 デイズさん訪問 — 猫グッズを持参</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">猫3匹の名前を確認。雑談から入る。「社長が事務作業から解放されたら何をしたい？」を聞く。</textarea>
-</div></div><div class="card" draggable="true" data-id="c3" data-text="金澤さんLPのスクショを訪問資料として整理" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="today" data-zone="q1" data-detail="介護LP・研修システム・名刺CRMを見せる用に準備。" data-icon="📷">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📷</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">金澤さんLPのスクショを訪問資料として整理</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">介護LP・研修システム・名刺CRMを見せる用に準備。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('today','q1')">＋ 追加</button>
+  <div class="legend" id="leg-today"></div>
+  <div class="mlabels"><div></div><div class="mlabel red">🔴 緊急度：高い</div><div class="mlabel blue">🔵 緊急度：低い</div></div>
+  <div class="mwrap">
+    <div class="yaxis"><div class="yband red">重要度：高い</div><div class="yband blue">重要度：低い</div></div>
+    <div class="mgrid">
+      <div class="quad q1" id="q-today-q1" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>🔥</span><span class="qtitle">第1領域 — 今すぐやる</span><span class="qcount" id="cnt-today-q1">0</span></div>
+        <div class="qsub">重要度：高い × 緊急度：高い</div>
+        <div class="carea" id="area-today-q1"></div>
+        <button class="addbtn" onclick="openModal('today','q1')">＋ 追加</button>
       </div>
-      <div class="quadrant q2" data-matrix="today" data-zone="q2" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>📅</span><span class="q-title">第2領域 — 計画する</span><span class="q-count" id="count-today-q2">0</span></div>
-        <div class="q-sub">重要度：高い ✕ 緊急度：低い</div>
-        <div class="cards-area" id="area-today-q2">
-<div class="card" draggable="true" data-id="c4" data-text="📱 あすけん記録（食事を毎日ログ）" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="毎食記録。忘れそうなら食後すぐにログ。" data-icon="📱">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📱</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">📱 あすけん記録（食事を毎日ログ）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">毎食記録。忘れそうなら食後すぐにログ。</textarea>
-</div></div><div class="card" draggable="true" data-id="c5" data-text="⚖️ 体重計に乗る（毎朝起きたら）" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="朝イチ、トイレ後に測る。数字じゃなく習慣化が目的。" data-icon="⚖️">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">⚖️</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">⚖️ 体重計に乗る（毎朝起きたら）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">朝イチ、トイレ後に測る。数字じゃなく習慣化が目的。</textarea>
-</div></div><div class="card" draggable="true" data-id="c6" data-text="🏃‍♀️ ジョギング or ダンス（10〜15分）" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="雨の日はダンスでOK。服を着替えるだけで始まる。" data-icon="🏃‍♀️">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🏃‍♀️</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">🏃‍♀️ ジョギング or ダンス（10〜15分）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">雨の日はダンスでOK。服を着替えるだけで始まる。</textarea>
-</div></div><div class="card" draggable="true" data-id="c7" data-text="🥗 砂糖・パン・お菓子なし" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="7月の写真撮影に向けて。食べたくなったら水を飲む。" data-icon="🥗">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🥗</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">🥗 砂糖・パン・お菓子なし</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">7月の写真撮影に向けて。食べたくなったら水を飲む。</textarea>
-</div></div><div class="card" draggable="true" data-id="c8" data-text="📚 Udemy勉強（30分〜1時間）" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="DX・業務効率・システム提案。提案力を上げて単価アップへ。" data-icon="📚">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📚</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">📚 Udemy勉強（30分〜1時間）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">DX・業務効率・システム提案。提案力を上げて単価アップへ。</textarea>
-</div></div><div class="card" draggable="true" data-id="c9" data-text="🤖 Claude・AI活用練習（毎日15分）" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="何か一つ新しい使い方を試して記録する。" data-icon="🤖">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🤖</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">🤖 Claude・AI活用練習（毎日15分）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">何か一つ新しい使い方を試して記録する。</textarea>
-</div></div><div class="card" draggable="true" data-id="c10" data-text="👩‍🎓 生徒さんの毎日報告チェック・返信" data-tag="毎日習慣" data-priority="2" data-done="0" data-matrix="today" data-zone="q2" data-detail="毎日やったこと報告してもらう仕組みを回す。" data-icon="👩‍🎓">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">👩‍🎓</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">👩‍🎓 生徒さんの毎日報告チェック・返信</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">毎日やったこと報告してもらう仕組みを回す。</textarea>
-</div></div><div class="card" draggable="true" data-id="c11" data-text="📸 インスタ発信（4本柱意識・週3ペース）" data-tag="毎日習慣" data-priority="3" data-done="0" data-matrix="today" data-zone="q2" data-detail="キャンバ・インスタ・AI・マインドの4本柱を意識したコンテンツ。" data-icon="📸">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📸</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">📸 インスタ発信（4本柱意識・週3ペース）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF0FF;color:#6B2FA0">毎日習慣</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">キャンバ・インスタ・AI・マインドの4本柱を意識したコンテンツ。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('today','q2')">＋ 追加</button>
+      <div class="quad q2" id="q-today-q2" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>📅</span><span class="qtitle">第2領域 — 計画する</span><span class="qcount" id="cnt-today-q2">0</span></div>
+        <div class="qsub">重要度：高い × 緊急度：低い</div>
+        <div class="carea" id="area-today-q2"></div>
+        <button class="addbtn" onclick="openModal('today','q2')">＋ 追加</button>
       </div>
-      <div class="quadrant q3" data-matrix="today" data-zone="q3" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>↗️</span><span class="q-title">第3領域 — 委任する</span><span class="q-count" id="count-today-q3">0</span></div>
-        <div class="q-sub">重要度：低い ✕ 緊急度：高い</div>
-        <div class="cards-area" id="area-today-q3">
-
-</div>
-        <button class="add-btn" onclick="openModal('today','q3')">＋ 追加</button>
+      <div class="quad q3" id="q-today-q3" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>↗️</span><span class="qtitle">第3領域 — 委任する</span><span class="qcount" id="cnt-today-q3">0</span></div>
+        <div class="qsub">重要度：低い × 緊急度：高い</div>
+        <div class="carea" id="area-today-q3"></div>
+        <button class="addbtn" onclick="openModal('today','q3')">＋ 追加</button>
       </div>
-      <div class="quadrant q4" data-matrix="today" data-zone="q4" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>🗑️</span><span class="q-title">第4領域 — 後回し</span><span class="q-count" id="count-today-q4">0</span></div>
-        <div class="q-sub">重要度：低い ✕ 緊急度：低い</div>
-        <div class="cards-area" id="area-today-q4">
-<div class="card" draggable="true" data-id="c12" data-text="📺 YouTube：関係ない動画を見ない" data-tag="" data-priority="5" data-done="0" data-matrix="today" data-zone="q4" data-detail="自己啓発・勉強系のみ。時間泥棒に注意。" data-icon="🚫">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🚫</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">📺 YouTube：関係ない動画を見ない</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">自己啓発・勉強系のみ。時間泥棒に注意。</textarea>
-</div></div><div class="card" draggable="true" data-id="c13" data-text="💬 LINEは3回（8時・12時・20時）のみ" data-tag="" data-priority="5" data-done="0" data-matrix="today" data-zone="q4" data-detail="集中を守るためのルール。通知は切っておく。" data-icon="🛡️">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🛡️</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">💬 LINEは3回（8時・12時・20時）のみ</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">集中を守るためのルール。通知は切っておく。</textarea>
-</div></div><div class="card" draggable="true" data-id="c14" data-text="🚫 無目的な交流会・ゴール無関係なSNS" data-tag="" data-priority="5" data-done="0" data-matrix="today" data-zone="q4" data-detail="手放す。時間は有限。" data-icon="🚫">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🚫</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">🚫 無目的な交流会・ゴール無関係なSNS</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">手放す。時間は有限。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('today','q4')">＋ 追加</button>
+      <div class="quad q4" id="q-today-q4" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>🗑️</span><span class="qtitle">第4領域 — 後回し</span><span class="qcount" id="cnt-today-q4">0</span></div>
+        <div class="qsub">重要度：低い × 緊急度：低い</div>
+        <div class="carea" id="area-today-q4"></div>
+        <button class="addbtn" onclick="openModal('today','q4')">＋ 追加</button>
       </div>
     </div>
   </div>
-  <div class="done-section" id="done-section-today" ondragover="onOverDone(event,'today')" ondrop="onDropDone(event,'today')" ondragleave="onLeaveDone(event,'today')">
-    <div class="done-header" onclick="toggleDoneArea('today')">
+  <div class="done-wrap" id="dw-today" ondragover="evDone(event,'today')" ondrop="dropDone(event,'today')" ondragleave="lvDone(event,'today')">
+    <div class="done-head" onclick="toggleDoneArea('today')">
       <span>✅</span><span class="done-title">完了済み</span>
-      <span class="done-count" id="done-count-today">0</span>
-      <span class="done-toggle open" id="done-toggle-today">▶</span>
+      <span class="done-count" id="dcnt-today">0</span>
+      <span class="done-arr open" id="darr-today">▶</span>
     </div>
-    <div class="done-cards" id="done-area-today"></div>
+    <div class="done-cards" id="done-today"></div>
   </div>
 </div>
 
-<!-- LONGTERM -->
 <div id="longterm" class="page">
-  <div class="legend" id="legend-longterm"></div>
-  <div class="matrix-labels-top">
-    <div class="ml-corner"></div>
-    <div class="ml-header urgent-high">🔴 緊急度：高い</div>
-    <div class="ml-header urgent-low">🔵 緊急度：低い</div>
-  </div>
-  <div class="matrix-container">
-    <div class="axis-y">
-      <div class="axis-y-band imp-high">重要度：高い</div>
-      <div class="axis-y-band imp-low">重要度：低い</div>
-    </div>
-    <div class="matrix-grid">
-      <div class="quadrant q1" data-matrix="longterm" data-zone="q1" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>🔥</span><span class="q-title">第1領域 — 今すぐやる</span><span class="q-count" id="count-longterm-q1">0</span></div>
-        <div class="q-sub">重要度：高い ✕ 緊急度：高い</div>
-        <div class="cards-area" id="area-longterm-q1">
-<div class="card" draggable="true" data-id="c15" data-text="7/2 あゆみさん訪問（ヒアリング重視・提案書なしOK）" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="管理費が高いという話を覚えている。弊社ならこれだけ圧縮できますという比較資料を持参。利用者・ケアマネ目線のサイト提案。" data-icon="🤝">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🤝</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">7/2 あゆみさん訪問（ヒアリング重視・提案書なしOK）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">管理費が高いという話を覚えている。弊社ならこれだけ圧縮できますという比較資料を持参。利用者・ケアマネ目線のサイト提案。</textarea>
-</div></div><div class="card" draggable="true" data-id="c16" data-text="7/2 デイズさん訪問（猫アバターAI提案・雑談から入る）" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="猫3匹の名前を覚えておく。猫グッズ or 猫用おやつを手土産に。社長が事務作業から解放されたら何をしたいか？を引き出す。「ぴったりですね」のタイミングを作る。" data-icon="🐱">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🐱</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">7/2 デイズさん訪問（猫アバターAI提案・雑談から入る）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">猫3匹の名前を覚えておく。猫グッズ or 猫用おやつを手土産に。社長が事務作業から解放されたら何をしたいか？を引き出す。「ぴったりですね」のタイミングを作る。</textarea>
-</div></div><div class="card" draggable="true" data-id="c17" data-text="金澤さんのLP・システムをスクショして訪問資料に使う" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="介護施設向けLP・研修管理システム・名刺CRMのスクショを整理して「こんなことできます」として見せる。" data-icon="📷">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📷</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">金澤さんのLP・システムをスクショして訪問資料に使う</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">介護施設向けLP・研修管理システム・名刺CRMのスクショを整理して「こんなことできます」として見せる。</textarea>
-</div></div><div class="card" draggable="true" data-id="c18" data-text="デイズさんへ猫グッズ or 猫用おやつを手土産に準備" data-tag="7/2訪問" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="" data-icon="🎁">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🎁</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">デイズさんへ猫グッズ or 猫用おやつを手土産に準備</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">7/2訪問</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow">▶</span>
-  <span class="detail-label">メモを追加</span>
-</button>
-<div class="detail-body">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど..."></textarea>
-</div></div><div class="card" draggable="true" data-id="c19" data-text="既存クライアントへのサーバー管理費パッケージを価格設定して請求開始" data-tag="サブスク" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="バックアップ・メール管理・FTP含めてパッケージ化。責任を持つ分のお金をちゃんと取る。月々5,000円〜設定を検討。" data-icon="💰">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">💰</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">既存クライアントへのサーバー管理費パッケージを価格設定して請求開始</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EDFFF5;color:#0F6E56">サブスク</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">バックアップ・メール管理・FTP含めてパッケージ化。責任を持つ分のお金をちゃんと取る。月々5,000円〜設定を検討。</textarea>
-</div></div><div class="card" draggable="true" data-id="c20" data-text="30万円案件の契約フェーズ区切りを書いて合意取る" data-tag="契約" data-priority="1" data-done="0" data-matrix="longterm" data-zone="q1" data-detail="「基礎に入ったら引き返せません」。修正可能な範囲を明示。追加費用・延長の条件を契約書に記載。2部作成して署名。" data-icon="📄">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📄</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">30万円案件の契約フェーズ区切りを書いて合意取る</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">契約</span><span class="card-priority priority-1">P1 最優先</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">「基礎に入ったら引き返せません」。修正可能な範囲を明示。追加費用・延長の条件を契約書に記載。2部作成して署名。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('longterm','q1')">＋ 追加</button>
+  <div class="legend" id="leg-longterm"></div>
+  <div class="mlabels"><div></div><div class="mlabel red">🔴 緊急度：高い</div><div class="mlabel blue">🔵 緊急度：低い</div></div>
+  <div class="mwrap">
+    <div class="yaxis"><div class="yband red">重要度：高い</div><div class="yband blue">重要度：低い</div></div>
+    <div class="mgrid">
+      <div class="quad q1" id="q-longterm-q1" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>🔥</span><span class="qtitle">第1領域 — 今すぐやる</span><span class="qcount" id="cnt-longterm-q1">0</span></div>
+        <div class="qsub">重要度：高い × 緊急度：高い</div>
+        <div class="carea" id="area-longterm-q1"></div>
+        <button class="addbtn" onclick="openModal('longterm','q1')">＋ 追加</button>
       </div>
-      <div class="quadrant q2" data-matrix="longterm" data-zone="q2" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>📅</span><span class="q-title">第2領域 — 計画する</span><span class="q-count" id="count-longterm-q2">0</span></div>
-        <div class="q-sub">重要度：高い ✕ 緊急度：低い</div>
-        <div class="cards-area" id="area-longterm-q2">
-<div class="card" draggable="true" data-id="c21" data-text="年末までの月50万円サブスク目標を数値で逆算する" data-tag="目標設定" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="何件×いくら＝50万円になるか計算する。管理費・インスタ運用・講座サブスクの組み合わせを書き出す。" data-icon="🎯">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🎯</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">年末までの月50万円サブスク目標を数値で逆算する</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#E6F9EE;color:#0F6E56">目標設定</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">何件×いくら＝50万円になるか計算する。管理費・インスタ運用・講座サブスクの組み合わせを書き出す。</textarea>
-</div></div><div class="card" draggable="true" data-id="c22" data-text="講座前ヒアリング枠を作る（別枠・少額1,000円〜課金）" data-tag="講座" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="なぜやりたいのか・どうなりたいのかを聞く時間。お金を払うことで受講生に本気度が生まれる。" data-icon="📚">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📚</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">講座前ヒアリング枠を作る（別枠・少額1,000円〜課金）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFFBE6;color:#7D4E00">講座</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">なぜやりたいのか・どうなりたいのかを聞く時間。お金を払うことで受講生に本気度が生まれる。</textarea>
-</div></div><div class="card" draggable="true" data-id="c23" data-text="キャンバ・インスタ・AI・マインドの4本柱講座設計" data-tag="講座" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="4本柱でインスタ発信もできる。ふわっとした動機の人を絞り込む設計にする。" data-icon="📚">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📚</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">キャンバ・インスタ・AI・マインドの4本柱講座設計</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFFBE6;color:#7D4E00">講座</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">4本柱でインスタ発信もできる。ふわっとした動機の人を絞り込む設計にする。</textarea>
-</div></div><div class="card" draggable="true" data-id="c24" data-text="インスタ講座の段階課金設計（最初3ヶ月15,000円→逓減）" data-tag="講座" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="最初3ヶ月は集中支援で15,000円。4ヶ月目以降はノウハウが積み上がったらサポートを減らして金額も下げる。" data-icon="💰">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">💰</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">インスタ講座の段階課金設計（最初3ヶ月15,000円→逓減）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFFBE6;color:#7D4E00">講座</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">最初3ヶ月は集中支援で15,000円。4ヶ月目以降はノウハウが積み上がったらサポートを減らして金額も下げる。</textarea>
-</div></div><div class="card" draggable="true" data-id="c25" data-text="インスタ運用チーム体制の設計（窓口はゆかりん・実務を外注）" data-tag="チーム" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="10万円の案件なら2万をゆかりんが受け取り残り8万を担当者へ。既に1人リール5,000円で動いてくれる生徒さんがいる。" data-icon="👥">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">👥</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">インスタ運用チーム体制の設計（窓口はゆかりん・実務を外注）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF3E6;color:#7E3A00">チーム</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">10万円の案件なら2万をゆかりんが受け取り残り8万を担当者へ。既に1人リール5,000円で動いてくれる生徒さんがいる。</textarea>
-</div></div><div class="card" draggable="true" data-id="c26" data-text="金澤さんネットワーク（インスタ専門家）と繋いでもらう" data-tag="チーム" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="金澤さんの7人グループにインスタ専門家がいる。紹介してもらう約束を実行する。" data-icon="👥">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">👥</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">金澤さんネットワーク（インスタ専門家）と繋いでもらう</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF3E6;color:#7E3A00">チーム</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">金澤さんの7人グループにインスタ専門家がいる。紹介してもらう約束を実行する。</textarea>
-</div></div><div class="card" draggable="true" data-id="c27" data-text="「うちで全部できます」一気通貫受注体制を整える" data-tag="営業" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="サーバー管理〜AIシステム構築まで。「うちで受けます」と言い切れるようになる。中は外注でもいい。" data-icon="🌐">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🌐</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">「うちで全部できます」一気通貫受注体制を整える</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EEF6FF;color:#0C447C">営業</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">サーバー管理〜AIシステム構築まで。「うちで受けます」と言い切れるようになる。中は外注でもいい。</textarea>
-</div></div><div class="card" draggable="true" data-id="c28" data-text="訪問介護施設向け営業チラシの作成と配布計画" data-tag="営業" data-priority="3" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="業務改善でこんな悩みないですか→解決策という訴え方。助成金PRは後から。友人にポスティング依頼。" data-icon="📋">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📋</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">訪問介護施設向け営業チラシの作成と配布計画</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EEF6FF;color:#0C447C">営業</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">業務改善でこんな悩みないですか→解決策という訴え方。助成金PRは後から。友人にポスティング依頼。</textarea>
-</div></div><div class="card" draggable="true" data-id="c29" data-text="AIスキルをさらに磨く・毎日Claude活用を深める" data-tag="AI" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="できることが分かるほど「できないことはない」という確信が上がる。毎日15分でいい。記録する。" data-icon="🤖">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🤖</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">AIスキルをさらに磨く・毎日Claude活用を深める</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#F5F0FF;color:#4A235A">AI</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">できることが分かるほど「できないことはない」という確信が上がる。毎日15分でいい。記録する。</textarea>
-</div></div><div class="card" draggable="true" data-id="c30" data-text="自分用AIアシスタント（秘書機能）を構築する" data-tag="AI" data-priority="3" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="金澤さんのように前日夜10時に翌日予定を通知→次の行動まで何分か教えてくれる仕組み。" data-icon="🤖">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🤖</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">自分用AIアシスタント（秘書機能）を構築する</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#F5F0FF;color:#4A235A">AI</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">金澤さんのように前日夜10時に翌日予定を通知→次の行動まで何分か教えてくれる仕組み。</textarea>
-</div></div><div class="card" draggable="true" data-id="c31" data-text="サーバーバックアップ体制を整える（2段階）" data-tag="サブスク" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="自動バックアップ＋手動ダウンロード。共有サーバーの改ざんリスクを説明してクライアントに提案。" data-icon="💾">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">💾</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">サーバーバックアップ体制を整える（2段階）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EDFFF5;color:#0F6E56">サブスク</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">自動バックアップ＋手動ダウンロード。共有サーバーの改ざんリスクを説明してクライアントに提案。</textarea>
-</div></div><div class="card" draggable="true" data-id="c32" data-text="新規提案書テンプレート作成（フェーズ区切り・修正費用記載）" data-tag="契約" data-priority="3" data-done="0" data-matrix="longterm" data-zone="q2" data-detail="フェーズごとにGO/修正可能を明示。追加費用の発生条件も記載。2部作成・署名が基本。" data-icon="📄">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📄</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">新規提案書テンプレート作成（フェーズ区切り・修正費用記載）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFEDEE;color:#C0392B">契約</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">フェーズごとにGO/修正可能を明示。追加費用の発生条件も記載。2部作成・署名が基本。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('longterm','q2')">＋ 追加</button>
+      <div class="quad q2" id="q-longterm-q2" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>📅</span><span class="qtitle">第2領域 — 計画する</span><span class="qcount" id="cnt-longterm-q2">0</span></div>
+        <div class="qsub">重要度：高い × 緊急度：低い</div>
+        <div class="carea" id="area-longterm-q2"></div>
+        <button class="addbtn" onclick="openModal('longterm','q2')">＋ 追加</button>
       </div>
-      <div class="quadrant q3" data-matrix="longterm" data-zone="q3" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>↗️</span><span class="q-title">第3領域 — 委任する</span><span class="q-count" id="count-longterm-q3">0</span></div>
-        <div class="q-sub">重要度：低い ✕ 緊急度：高い</div>
-        <div class="cards-area" id="area-longterm-q3">
-<div class="card" draggable="true" data-id="c33" data-text="リスキリング助成金の条件を専門家に確認（金澤さん紹介）" data-tag="営業" data-priority="3" data-done="0" data-matrix="longterm" data-zone="q3" data-detail="60万の講座料金がリスキリング助成金で圧縮できる可能性。専門家を同席させて説明してもらう。" data-icon="💡">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">💡</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">リスキリング助成金の条件を専門家に確認（金澤さん紹介）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EEF6FF;color:#0C447C">営業</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">60万の講座料金がリスキリング助成金で圧縮できる可能性。専門家を同席させて説明してもらう。</textarea>
-</div></div><div class="card" draggable="true" data-id="c34" data-text="インスタ運用の実務を生徒さんへ委任する" data-tag="チーム" data-priority="2" data-done="0" data-matrix="longterm" data-zone="q3" data-detail="品質チェックはゆかりんが担当。窓口はゆかりんのまま。丸任せにしてもいい人にはしてもいい。" data-icon="👥">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">👥</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">インスタ運用の実務を生徒さんへ委任する</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF3E6;color:#7E3A00">チーム</span><span class="card-priority priority-2">P2 高</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">品質チェックはゆかりんが担当。窓口はゆかりんのまま。丸任せにしてもいい人にはしてもいい。</textarea>
-</div></div><div class="card" draggable="true" data-id="c35" data-text="チラシポスティングを友人に依頼・時給設定" data-tag="チーム" data-priority="3" data-done="0" data-matrix="longterm" data-zone="q3" data-detail="ランニングがてらポスティングしてくれる友人がいる。時給を決めて依頼する。" data-icon="📮">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">📮</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">チラシポスティングを友人に依頼・時給設定</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#FFF3E6;color:#7E3A00">チーム</span><span class="card-priority priority-3">P3 中</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">ランニングがてらポスティングしてくれる友人がいる。時給を決めて依頼する。</textarea>
-</div></div><div class="card" draggable="true" data-id="c36" data-text="キックスクリエイターズユニット 見学参加（金澤さんに連絡）" data-tag="目標設定" data-priority="4" data-done="0" data-matrix="longterm" data-zone="q3" data-detail="万博アフターで関西盛り上げ活動。一生で1回1万円のみ。質の高い人たちが集まるコミュニティ。" data-icon="✨">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">✨</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">キックスクリエイターズユニット 見学参加（金澤さんに連絡）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#E6F9EE;color:#0F6E56">目標設定</span><span class="card-priority priority-4">P4 低</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">万博アフターで関西盛り上げ活動。一生で1回1万円のみ。質の高い人たちが集まるコミュニティ。</textarea>
-</div></div><div class="card" draggable="true" data-id="c37" data-text="アムウェイ経由のサブスク収入の可能性を整理する" data-tag="サブスク" data-priority="4" data-done="0" data-matrix="longterm" data-zone="q3" data-detail="" data-icon="💰">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">💰</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">アムウェイ経由のサブスク収入の可能性を整理する</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EDFFF5;color:#0F6E56">サブスク</span><span class="card-priority priority-4">P4 低</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow">▶</span>
-  <span class="detail-label">メモを追加</span>
-</button>
-<div class="detail-body">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど..."></textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('longterm','q3')">＋ 追加</button>
+      <div class="quad q3" id="q-longterm-q3" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>↗️</span><span class="qtitle">第3領域 — 委任する</span><span class="qcount" id="cnt-longterm-q3">0</span></div>
+        <div class="qsub">重要度：低い × 緊急度：高い</div>
+        <div class="carea" id="area-longterm-q3"></div>
+        <button class="addbtn" onclick="openModal('longterm','q3')">＋ 追加</button>
       </div>
-      <div class="quadrant q4" data-matrix="longterm" data-zone="q4" ondragover="onOver(event)" ondrop="onDrop(event)" ondragleave="onLeave(event)">
-        <div class="q-header"><span>🗑️</span><span class="q-title">第4領域 — 後回し</span><span class="q-count" id="count-longterm-q4">0</span></div>
-        <div class="q-sub">重要度：低い ✕ 緊急度：低い</div>
-        <div class="cards-area" id="area-longterm-q4">
-<div class="card" draggable="true" data-id="c38" data-text="無目的・目的不明確な交流会への参加をやめる（ルール化）" data-tag="目標設定" data-priority="5" data-done="0" data-matrix="longterm" data-zone="q4" data-detail="「仕事をもらいに来ている人」だらけの交流会は時間の無駄。目的があるコミュニティだけに絞る。" data-icon="🚫">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🚫</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">無目的・目的不明確な交流会への参加をやめる（ルール化）</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#E6F9EE;color:#0F6E56">目標設定</span><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">「仕事をもらいに来ている人」だらけの交流会は時間の無駄。目的があるコミュニティだけに絞る。</textarea>
-</div></div><div class="card" draggable="true" data-id="c39" data-text="自分に合わないクライアントを断る判断基準を作る" data-tag="営業" data-priority="5" data-done="0" data-matrix="longterm" data-zone="q4" data-detail="周りのために役立ちたいという前提がない人、自己中な人とは二人三脚は無理。最初のヒアリングで見極める。" data-icon="🛡️">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">🛡️</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">自分に合わないクライアントを断る判断基準を作る</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#EEF6FF;color:#0C447C">営業</span><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">周りのために役立ちたいという前提がない人、自己中な人とは二人三脚は無理。最初のヒアリングで見極める。</textarea>
-</div></div><div class="card" draggable="true" data-id="c40" data-text="助成金・補助金の深掘り勉強は今しない" data-tag="目標設定" data-priority="5" data-done="0" data-matrix="longterm" data-zone="q4" data-detail="体制が固まってから。今は骨格を固めることに集中。専門家に任せればいい。" data-icon="⏸️">
-<div class="card-top">
-  <input type="checkbox" class="card-check" title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">⏸️</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">助成金・補助金の深掘り勉強は今しない</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer"><span class="card-tag" style="background:#E6F9EE;color:#0F6E56">目標設定</span><span class="card-priority priority-5">P5 いつか</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow open">▶</span>
-  <span class="detail-label">メモあり</span>
-</button>
-<div class="detail-body open">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">体制が固まってから。今は骨格を固めることに集中。専門家に任せればいい。</textarea>
-</div></div>
-</div>
-        <button class="add-btn" onclick="openModal('longterm','q4')">＋ 追加</button>
+      <div class="quad q4" id="q-longterm-q4" ondragover="ev(event)" ondrop="drop(event)" ondragleave="lv(event)">
+        <div class="qhead"><span>🗑️</span><span class="qtitle">第4領域 — 後回し</span><span class="qcount" id="cnt-longterm-q4">0</span></div>
+        <div class="qsub">重要度：低い × 緊急度：低い</div>
+        <div class="carea" id="area-longterm-q4"></div>
+        <button class="addbtn" onclick="openModal('longterm','q4')">＋ 追加</button>
       </div>
     </div>
   </div>
-  <div class="done-section" id="done-section-longterm" ondragover="onOverDone(event,'longterm')" ondrop="onDropDone(event,'longterm')" ondragleave="onLeaveDone(event,'longterm')">
-    <div class="done-header" onclick="toggleDoneArea('longterm')">
+  <div class="done-wrap" id="dw-longterm" ondragover="evDone(event,'longterm')" ondrop="dropDone(event,'longterm')" ondragleave="lvDone(event,'longterm')">
+    <div class="done-head" onclick="toggleDoneArea('longterm')">
       <span>✅</span><span class="done-title">完了済み</span>
-      <span class="done-count" id="done-count-longterm">0</span>
-      <span class="done-toggle open" id="done-toggle-longterm">▶</span>
+      <span class="done-count" id="dcnt-longterm">0</span>
+      <span class="done-arr open" id="darr-longterm">▶</span>
     </div>
-    <div class="done-cards" id="done-area-longterm"></div>
+    <div class="done-cards" id="done-longterm"></div>
   </div>
 </div>
-
 </main>
 
-<!-- MODAL -->
-<div class="modal-backdrop" id="modal" onclick="closeModalOutside(event)">
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <h3 id="modal-title">タスクを追加</h3>
+    <h3>タスクを追加</h3>
     <label>タスク内容 *</label>
-    <textarea id="m-text" placeholder="例：7/2 あゆみさん訪問のヒアリング準備"></textarea>
+    <textarea id="m-text" placeholder="例：7/2 あゆみさん訪問の準備"></textarea>
     <label>カテゴリタグ</label>
     <select id="m-tag">
       <option value="">なし</option>
@@ -912,445 +240,413 @@ main{padding:1.6rem 2rem;max-width:140rem;margin:0 auto}
       <option value="毎日習慣">🌅 毎日習慣</option>
     </select>
     <label>優先度</label>
-    <select id="m-priority">
-      <option value="1">🔴 P1 — 最優先（今週中）</option>
-      <option value="2">🟠 P2 — 高（今月中）</option>
-      <option value="3" selected>🟡 P3 — 中（3ヶ月以内）</option>
-      <option value="4">🔵 P4 — 低（半年以内）</option>
-      <option value="5">🟣 P5 — いつか</option>
+    <select id="m-pri">
+      <option value="1">🔴 P1 最優先</option>
+      <option value="2">🟠 P2 高</option>
+      <option value="3" selected>🟡 P3 中</option>
+      <option value="4">🔵 P4 低</option>
+      <option value="5">🟣 P5 いつか</option>
     </select>
-    <label>メモ・詳細（任意）</label>
-    <input type="text" id="m-detail" placeholder="補足メモがあれば">
-    <div class="modal-btns">
-      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="submitModal()">追加する</button>
+    <label>メモ（任意）</label>
+    <input type="text" id="m-memo" placeholder="補足があれば">
+    <div class="mbtns">
+      <button class="mbtn ghost" onclick="closeModal()">キャンセル</button>
+      <button class="mbtn primary" onclick="submitModal()">追加する</button>
     </div>
   </div>
 </div>
 
+<div class="ipicker" id="ipicker"></div>
+
 <script>
-clet dragging=null,saveTimer=null,doneOpen={today:true,longterm:true},mCtx={m:'',z:''},activeIP=null;
-onst TAG_COLORS={
-  '7/2訪問':{bg:'#FFEDEE',color:'#C0392B'},
-  'サブスク':{bg:'#EDFFF5',color:'#0F6E56'},
-  '講座':{bg:'#FFFBE6',color:'#7D4E00'},
-  '営業':{bg:'#EEF6FF',color:'#0C447C'},
-  'AI':{bg:'#F5F0FF',color:'#4A235A'},
-  'チーム':{bg:'#FFF3E6',color:'#7E3A00'},
-  '契約':{bg:'#FFEDEE',color:'#C0392B'},
-  '目標設定':{bg:'#E6F9EE',color:'#0F6E56'},
-  '毎日習慣':{bg:'#FFF0FF',color:'#6B2FA0'},
+// ===== CONFIG =====
+var SAVE_KEY = 'yukarin_v1';
+var TC = {
+  '7/2訪問':{bg:'#FFEDEE',c:'#C0392B'},
+  'サブスク':{bg:'#EDFFF5',c:'#0F6E56'},
+  '講座':{bg:'#FFFBE6',c:'#7D4E00'},
+  '営業':{bg:'#EEF6FF',c:'#0C447C'},
+  'AI':{bg:'#F5F0FF',c:'#4A235A'},
+  'チーム':{bg:'#FFF3E6',c:'#7E3A00'},
+  '契約':{bg:'#FFEDEE',c:'#C0392B'},
+  '目標設定':{bg:'#E6F9EE',c:'#0F6E56'},
+  '毎日習慣':{bg:'#FFF0FF',c:'#6B2FA0'}
 };
-const PL={1:'P1 最優先',2:'P2 高',3:'P3 中',4:'P4 低',5:'P5 いつか'};
-const PC={1:'priority-1',2:'priority-2',3:'priority-3',4:'priority-4',5:'priority-5'};
-let cidx=0,dragging=null,modalCtxRef={m:'',z:''},saveTimer=null,doneOpen={today:true,longterm:true};
+var PL = {1:'P1',2:'P2',3:'P3',4:'P4',5:'P5'};
+var PC = {1:'p1',2:'p2',3:'p3',4:'p4',5:'p5'};
+var ICONS = ['📌','⭐','🔥','✅','📅','📝','💡','🎯','💰','🤝','📱','💻','🌐','🏃‍♀️','⚖️','🥗','📚','🤖','👩‍🎓','📸','🚫','🛡️','🎉','💪','🌸','🌟','🏆','🎊','🔑','💎','🚀','🎵','🎨','📷','🎁','🙌','👑','🦋','🌻','💾','📋','📮','✨','⏸️','🐱','💬','🎁','🌈','⚡','🌙'];
+var cidx = 0;
+var dragging = null;
+var saveTimer = null;
+var mCtx = {m:'',z:''};
+var doneOpen = {today:true, longterm:true};
+var activeIP = null;
 
-// ===================== 日付 =====================
-const D=new Date();
-const WD=['日','月','火','水','木','金','土'];
-const dateStr=`${D.getFullYear()}年${D.getMonth()+1}月${D.getDate()}日（${WD[D.getDay()]}）`;
-document.getElementById('habit-date').textContent=dateStr;
-const todayKey=`h_${D.getFullYear()}_${D.getMonth()}_${D.getDate()}`;
-
-// ===================== SOUND =====================
-function playChime(){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [{f:783.99,t:0},{f:1046.50,t:0.13}].forEach(({f,t})=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);o.type='sine';
-      o.frequency.setValueAtTime(f,ctx.currentTime);
-      const st=ctx.currentTime+t;
-      g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(0.2,st+0.01);g.gain.exponentialRampToValueAtTime(0.001,st+0.35);
-      o.start(st);o.stop(st+0.4);
-    });
-  }catch(e){}
-}
-function playAllDoneChime(){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [{f:523.25,t:0,d:.5},{f:659.25,t:.18,d:.5},{f:783.99,t:.36,d:.5},{f:1046.50,t:.54,d:.7},{f:1318.51,t:.72,d:.9},{f:1046.50,t:.90,d:1.0}].forEach(({f,t,d})=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);o.type='sine';
-      const st=ctx.currentTime+t;
-      o.frequency.setValueAtTime(f,st);
-      g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(0.3,st+0.02);g.gain.exponentialRampToValueAtTime(0.001,st+d);
-      o.start(st);o.stop(st+d+.05);
-    });
-  }catch(e){}
-}
-
-// ===================== CARD =====================
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-
-// Icon picker
-const ALL_ICONS=['📌','⭐','🔥','✅','📅','📝','💡','🎯','💰','📊','🤝','📱','💻','🌐','📧','📞','✉️','🏃‍♀️','⚖️','🥗','📚','🤖','👩‍🎓','📸','📺','💬','🚫','🛡️','🎉','💪','🌸','🌟','🏆','💫','🌈','🎊','🍀','🌺','🔑','🗝️','💎','🌙','☀️','🌊','🏠','🚀','✈️','🎵','🎨','📷','🛒','🎁','🙌','🧘‍♀️','👑','🦋','🌻','🍀','🏅','🎖️','📣','🔔','⚡','🌟','💝','🕊️','🦄'];
-let activeIconPicker=null;
-function openIconPicker(e,card,btn){
-  if(activeIconPicker){activeIconPicker.remove();activeIconPicker=null;}
-  const picker=document.createElement('div');
-  picker.className='icon-picker open';
-  const search=document.createElement('input');
-  search.className='icon-search';search.placeholder='絵文字を検索...';search.type='text';
-  picker.appendChild(search);
-  function renderIcons(filter){
-    picker.querySelectorAll('.icon-opt').forEach(x=>x.remove());
-    const list=filter?ALL_ICONS.filter(ic=>ic.includes(filter)):ALL_ICONS;
-    list.forEach(ic=>{
-      const b=document.createElement('button');b.className='icon-opt';b.textContent=ic;
-      b.addEventListener('click',function(ev){
-        ev.stopPropagation();
-        btn.textContent=ic;card.dataset.icon=ic;
-        picker.remove();activeIconPicker=null;scheduleSave();
-      });
-      picker.appendChild(b);
-    });
-  }
-  renderIcons('');
-  search.addEventListener('input',function(){renderIcons(search.value);});
-  search.addEventListener('mousedown',function(e){e.stopPropagation();});
-  document.body.appendChild(picker);
-  activeIconPicker=picker;
-  const rect=btn.getBoundingClientRect();
-  picker.style.top=(rect.bottom+window.scrollY+4)+'px';
-  picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-300)+'px';
-  setTimeout(()=>search.focus(),50);
-}
-document.addEventListener('click',function(){if(activeIconPicker){activeIconPicker.remove();activeIconPicker=null;}});
-
-function buildCard(data,matrix,zone){
-  const{text,tag,priority,detail,done}=data;
-  const id=data.id||'c'+(cidx++);
-  const icon=data.icon||'📌';
-  const tc=TAG_COLORS[tag]||null;
-  const pLabel=PL[priority]||'P3 中';
-  const pClass=PC[priority]||'priority-3';
-  const el=document.createElement('div');
-  el.className='card'+(done?' done':'');
-  el.draggable=true;
-  el.dataset.id=id;el.dataset.text=text||'';el.dataset.tag=tag||'';
-  el.dataset.priority=priority||3;el.dataset.done=done?'1':'0';
-  el.dataset.matrix=matrix;el.dataset.zone=zone;el.dataset.detail=detail||'';
-  el.dataset.icon=icon;
-  const tagHtml=tc?`<span class="card-tag" style="background:${tc.bg};color:${tc.color}">${esc(tag)}</span>`:'';
-  const hasDetail=!!(detail&&detail.trim());
-  el.innerHTML=`
-<div class="card-top">
-  <input type="checkbox" class="card-check" ${done?'checked':''} title="完了">
-  <button class="card-icon-btn" title="アイコンを変える（クリック）">${esc(icon)}</button>
-  <div class="card-text-display" contenteditable="true" spellcheck="false">${esc(text)}</div>
-  <div class="card-actions"><button class="card-btn del-btn" title="削除">✕</button></div>
-</div>
-<div class="card-footer">${tagHtml}<span class="card-priority ${pClass}">${pLabel}</span><span class="card-drag">⠿</span></div>
-<button class="detail-toggle">
-  <span class="detail-arrow${hasDetail?' open':''}">▶</span>
-  <span class="detail-label">${hasDetail?'メモあり':'メモを追加'}</span>
-</button>
-<div class="detail-body${hasDetail?' open':''}">
-  <textarea class="detail-textarea" placeholder="補足・やり方・メモなど...">${esc(detail||'')}</textarea>
-</div>`;
-  const textEl=el.querySelector('.card-text-display');
-  textEl.addEventListener('input',function(){el.dataset.text=textEl.textContent;scheduleSave();});
-  textEl.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault();});
-  const iconBtn=el.querySelector('.card-icon-btn');
-  iconBtn.addEventListener('click',function(e){e.stopPropagation();openIconPicker(e,el,iconBtn);});
-  const dtoggle=el.querySelector('.detail-toggle');
-  const darrow=el.querySelector('.detail-arrow');
-  const dlabel=el.querySelector('.detail-label');
-  const dbody=el.querySelector('.detail-body');
-  const dta=el.querySelector('.detail-textarea');
-  dtoggle.addEventListener('click',function(){
-    const open=dbody.classList.toggle('open');
-    darrow.classList.toggle('open',open);
-    dlabel.textContent=open?'閉じる':'メモを追加';
-    if(open)setTimeout(()=>dta.focus(),50);
-  });
-  dta.addEventListener('input',function(){
-    el.dataset.detail=dta.value;
-    dlabel.textContent=dta.value.trim()?'メモあり':'メモを追加';
-    scheduleSave();
-  });
-  dta.addEventListener('mousedown',function(e){e.stopPropagation();});
-  el.querySelector('.card-check').addEventListener('change',function(){
-    toggleDone(el,matrix);
-    const isChecked=el.querySelector('.card-check').checked;
-    if(isChecked)playChime();
-  });
-  el.querySelector('.del-btn').addEventListener('click',function(e){
-    e.stopPropagation();
-    if(confirm('このタスクを削除しますか？')){el.remove();updateCounts(matrix);updateLegend(matrix);scheduleSave();}
-  });
-  el.addEventListener('dragstart',function(e){dragging=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-  el.addEventListener('dragend',function(){el.classList.remove('dragging');dragging=null;document.querySelectorAll('.drag-over').forEach(q=>q.classList.remove('drag-over'));});
-  textEl.addEventListener('mousedown',function(){el.draggable=false;});
-  document.addEventListener('mouseup',function(){if(el)el.draggable=true;});
-  return el;
-}
-function toggleDone(card,matrix){
-  const isDone=card.querySelector('.card-check').checked;
-  card.dataset.done=isDone?'1':'0';
-  if(isDone){card.classList.add('done');document.getElementById('done-area-'+matrix).prepend(card);}
-  else{const z=card.dataset.zone||'q1';document.getElementById('area-'+matrix+'-'+z).appendChild(card);card.classList.remove('done');}
-  updateCounts(matrix);scheduleSave();
-}
-function onOver(e){e.preventDefault();if(dragging)e.currentTarget.classList.add('drag-over');}
-function onLeave(e){e.currentTarget.classList.remove('drag-over');}
-function onDrop(e){
-  e.preventDefault();const target=e.currentTarget;target.classList.remove('drag-over');
-  if(!dragging)return;
-  const matrix=target.dataset.matrix,zone=target.dataset.zone;
-  const pm=dragging.dataset.matrix;
-  dragging.dataset.zone=zone;dragging.dataset.matrix=matrix;
-  if(dragging.dataset.done==='1'){dragging.querySelector('.card-check').checked=false;dragging.classList.remove('done');dragging.dataset.done='0';}
-  document.getElementById('area-'+matrix+'-'+zone).appendChild(dragging);
-  updateCounts(matrix);if(pm!==matrix)updateCounts(pm);
-  updateLegend(matrix);updateLegend(pm);scheduleSave();
-}
-function onOverDone(e,matrix){e.preventDefault();if(dragging)document.getElementById('done-section-'+matrix).classList.add('drag-over');}
-function onLeaveDone(e,matrix){document.getElementById('done-section-'+matrix).classList.remove('drag-over');}
-function onDropDone(e,matrix){
-  e.preventDefault();document.getElementById('done-section-'+matrix).classList.remove('drag-over');
-  if(!dragging)return;
-  dragging.querySelector('.card-check').checked=true;dragging.classList.add('done');dragging.dataset.done='1';
-  const pm=dragging.dataset.matrix;dragging.dataset.matrix=matrix;
-  document.getElementById('done-area-'+matrix).prepend(dragging);
-  updateCounts(matrix);if(pm!==matrix)updateCounts(pm);
-  updateLegend(matrix);scheduleSave();
-  playChime();
-}
-function updateCounts(matrix){
-  ['q1','q2','q3','q4'].forEach(z=>{const a=document.getElementById('area-'+matrix+'-'+z);if(!a)return;const el=document.getElementById('count-'+matrix+'-'+z);if(el)el.textContent=a.querySelectorAll('.card').length;});
-  const da=document.getElementById('done-area-'+matrix);
-  if(da){const el=document.getElementById('done-count-'+matrix);if(el)el.textContent=da.querySelectorAll('.card').length;}
-}
-function updateLegend(matrix){
-  const tags=new Set();
-  document.querySelectorAll('.card').forEach(c=>{if(c.dataset.matrix===matrix&&c.dataset.tag)tags.add(c.dataset.tag);});
-  document.querySelectorAll('#done-area-'+matrix+' .card').forEach(c=>{if(c.dataset.tag)tags.add(c.dataset.tag);});
-  const el=document.getElementById('legend-'+matrix);if(!el)return;
-  el.innerHTML='<span class="legend-title">タグ：</span>';
-  tags.forEach(t=>{const tc=TAG_COLORS[t];if(!tc)return;const p=document.createElement('span');p.className='tag-pill';p.style.background=tc.bg;p.style.color=tc.color;p.style.border=`1px solid ${tc.color}33`;p.textContent=t;el.appendChild(p);});
-}
-function openModal(m,z){
-  modalCtxRef={m,z};
-  ['m-text','m-detail'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('m-tag').value='';document.getElementById('m-priority').value='3';
-  document.getElementById('modal').classList.add('open');
-  setTimeout(()=>document.getElementById('m-text').focus(),80);
-}
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-function closeModalOutside(e){if(e.target===document.getElementById('modal'))closeModal();}
-function submitModal(){
-  const text=document.getElementById('m-text').value.trim();
-  if(!text){alert('タスク内容を入力してください');return;}
-  const tag=document.getElementById('m-tag').value;
-  const priority=parseInt(document.getElementById('m-priority').value);
-  const detail=document.getElementById('m-detail').value.trim();
-  const{m,z}=modalCtxRef;
-  document.getElementById('area-'+m+'-'+z).appendChild(buildCard({text,tag,priority,detail,done:false},m,z));
-  updateCounts(m);updateLegend(m);scheduleSave();closeModal();
-}
-function toggleDoneArea(matrix){
-  doneOpen[matrix]=!doneOpen[matrix];
-  const a=document.getElementById('done-area-'+matrix);
-  const t=document.getElementById('done-toggle-'+matrix);
-  a.style.display=doneOpen[matrix]?'flex':'none';
-  if(t){t.textContent='▶';t.className='done-toggle'+(doneOpen[matrix]?' open':'');}
-}
-function switchTab(id,btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');document.getElementById(id).classList.add('active');
-}
-function saveAll(){
-  const state={lt:[],td:[],done_lt:[],done_td:[]};
-  ['q1','q2','q3','q4'].forEach(z=>{
-    document.querySelectorAll('#area-longterm-'+z+' .card').forEach(c=>{state.lt.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,priority:parseInt(c.dataset.priority)||3,done:false,detail:c.dataset.detail||'',icon:c.dataset.icon||'📌',zone:z});});
-    document.querySelectorAll('#area-today-'+z+' .card').forEach(c=>{state.td.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,priority:parseInt(c.dataset.priority)||3,done:false,detail:c.dataset.detail||'',icon:c.dataset.icon||'📌',zone:z});});
-  });
-  document.querySelectorAll('#done-area-longterm .card').forEach(c=>{state.done_lt.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,priority:parseInt(c.dataset.priority)||3,done:true,detail:c.dataset.detail||'',icon:c.dataset.icon||'📌',zone:c.dataset.zone||'q1'});});
-  document.querySelectorAll('#done-area-today .card').forEach(c=>{state.done_td.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,priority:parseInt(c.dataset.priority)||3,done:true,detail:c.dataset.detail||'',icon:c.dataset.icon||'📌',zone:c.dataset.zone||'q1'});});
-  const json=JSON.stringify(state);
-  const totalCards=state.lt.length+state.td.length+state.done_lt.length+state.done_td.length;
-  // Only save if there are actual cards (prevent saving empty state)
-  if(totalCards===0)return;
-  try{
-    localStorage.setItem(SAVE_KEY,json);
-    const b=document.getElementById('save-badge');
-    if(b){b.textContent='✓ 保存済み ('+totalCards+'件)';b.className='save-badge saved';setTimeout(()=>{b.textContent='自動保存';b.className='save-badge';},2000);}
-  }catch(e){
-    const b=document.getElementById('save-badge');
-    if(b){b.textContent='⚠️ 保存失敗';b.style.color='#C0392B';}
-  }
-}
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveAll,500);}
-
-// ===================== INITIAL DATA =====================
-const TODAY_INIT=[
-  // 🔥 今すぐやる
-  {zone:'q1',text:'7/2 あゆみさん訪問 — ヒアリング重視で行く',tag:'7/2訪問',priority:1,icon:'🤝',detail:'提案書なしでOK。管理費が高い話を覚えておく。「ぴったりですね」のタイミングを逃さない。'},
-  {zone:'q1',text:'7/2 デイズさん訪問 — 猫グッズを持参',tag:'7/2訪問',priority:1,icon:'🐱',detail:'猫3匹の名前を確認。雑談から入る。「社長が事務作業から解放されたら何をしたい？」を聞く。'},
-  {zone:'q1',text:'金澤さんLPのスクショを訪問資料として整理',tag:'7/2訪問',priority:1,icon:'📷',detail:'介護LP・研修システム・名刺CRMを見せる用に準備。'},
-  // 📅 計画する（よい習慣 × 毎日）
-  {zone:'q2',text:'📱 あすけん記録（食事を毎日ログ）',tag:'毎日習慣',priority:2,icon:'📱',detail:'毎食記録。忘れそうなら食後すぐにログ。'},
-  {zone:'q2',text:'⚖️ 体重計に乗る（毎朝起きたら）',tag:'毎日習慣',priority:2,icon:'⚖️',detail:'朝イチ、トイレ後に測る。数字じゃなく習慣化が目的。'},
-  {zone:'q2',text:'🏃‍♀️ ジョギング or ダンス（10〜15分）',tag:'毎日習慣',priority:2,icon:'🏃‍♀️',detail:'雨の日はダンスでOK。服を着替えるだけで始まる。'},
-  {zone:'q2',text:'🥗 砂糖・パン・お菓子なし',tag:'毎日習慣',priority:2,icon:'🥗',detail:'7月の写真撮影に向けて。食べたくなったら水を飲む。'},
-  {zone:'q2',text:'📚 Udemy勉強（30分〜1時間）',tag:'毎日習慣',priority:2,icon:'📚',detail:'DX・業務効率・システム提案。提案力を上げて単価アップへ。'},
-  {zone:'q2',text:'🤖 Claude・AI活用練習（毎日15分）',tag:'毎日習慣',priority:2,icon:'🤖',detail:'何か一つ新しい使い方を試して記録する。'},
-  {zone:'q2',text:'👩‍🎓 生徒さんの毎日報告チェック・返信',tag:'毎日習慣',priority:2,icon:'👩‍🎓',detail:'毎日やったこと報告してもらう仕組みを回す。'},
-  {zone:'q2',text:'📸 インスタ発信（4本柱意識・週3ペース）',tag:'毎日習慣',priority:3,icon:'📸',detail:'キャンバ・インスタ・AI・マインドの4本柱を意識したコンテンツ。'},
-  // ↗️ 委任する
-  {zone:'q3',text:'',tag:'',priority:3,icon:'📌',detail:''},
-  // 🗑️ 後回し・自制
-  {zone:'q4',text:'📺 YouTube：関係ない動画を見ない',tag:'',priority:5,icon:'🚫',detail:'自己啓発・勉強系のみ。時間泥棒に注意。'},
-  {zone:'q4',text:'💬 LINEは3回（8時・12時・20時）のみ',tag:'',priority:5,icon:'🛡️',detail:'集中を守るためのルール。通知は切っておく。'},
-  {zone:'q4',text:'🚫 無目的な交流会・ゴール無関係なSNS',tag:'',priority:5,icon:'🚫',detail:'手放す。時間は有限。'},
+// ===== INIT DATA =====
+var TD = [
+  {zone:'q1',text:'7/2 あゆみさん訪問 — ヒアリング重視',tag:'7/2訪問',pri:1,icon:'🤝',memo:'提案書なしでOK。管理費が高い話を覚えておく。「ぴったりですね」のタイミングを逃さない。'},
+  {zone:'q1',text:'7/2 デイズさん訪問 — 猫グッズを持参',tag:'7/2訪問',pri:1,icon:'🐱',memo:'猫3匹の名前を確認。雑談から入る。「社長が解放されたら何をしたい？」を聞く。'},
+  {zone:'q1',text:'金澤さんLPのスクショを訪問資料として整理',tag:'7/2訪問',pri:1,icon:'📷',memo:'介護LP・研修システム・名刺CRMを見せる用に準備。'},
+  {zone:'q2',text:'📱 あすけん記録（食事を毎日ログ）',tag:'毎日習慣',pri:2,icon:'📱',memo:'毎食記録。忘れそうなら食後すぐにログ。'},
+  {zone:'q2',text:'⚖️ 体重計に乗る（毎朝起きたら）',tag:'毎日習慣',pri:2,icon:'⚖️',memo:'朝イチ、トイレ後に測る。'},
+  {zone:'q2',text:'🏃‍♀️ ジョギング or ダンス（10〜15分）',tag:'毎日習慣',pri:2,icon:'🏃‍♀️',memo:'雨の日はダンスでOK。'},
+  {zone:'q2',text:'🥗 砂糖・パン・お菓子なし',tag:'毎日習慣',pri:2,icon:'🥗',memo:'7月の写真撮影に向けて。食べたくなったら水を飲む。'},
+  {zone:'q2',text:'📚 Udemy勉強（30分〜1時間）',tag:'毎日習慣',pri:2,icon:'📚',memo:'DX・業務効率・システム提案。'},
+  {zone:'q2',text:'🤖 Claude・AI活用練習（毎日15分）',tag:'毎日習慣',pri:2,icon:'🤖',memo:'何か一つ新しい使い方を試して記録する。'},
+  {zone:'q2',text:'👩‍🎓 生徒さんの毎日報告チェック・返信',tag:'毎日習慣',pri:2,icon:'👩‍🎓',memo:'毎日やったこと報告してもらう仕組みを回す。'},
+  {zone:'q2',text:'📸 インスタ発信（4本柱意識・週3ペース）',tag:'毎日習慣',pri:3,icon:'📸',memo:'キャンバ・インスタ・AI・マインドの4本柱を意識したコンテンツ。'},
+  {zone:'q4',text:'📺 YouTube：関係ない動画を見ない',tag:'',pri:5,icon:'🚫',memo:'自己啓発・勉強系のみ。'},
+  {zone:'q4',text:'💬 LINEは3回（8時・12時・20時）のみ',tag:'',pri:5,icon:'🛡️',memo:'集中を守るためのルール。'},
+  {zone:'q4',text:'🚫 無目的な交流会・ゴール無関係なSNS',tag:'',pri:5,icon:'🚫',memo:'手放す。時間は有限。'}
 ];
-const LT_INIT=[
-  {zone:'q1',text:'7/2 あゆみさん訪問（ヒアリング重視・提案書なしOK）',tag:'7/2訪問',priority:1,icon:'🤝',detail:'管理費が高いという話を覚えている。弊社ならこれだけ圧縮できますという比較資料を持参。利用者・ケアマネ目線のサイト提案。'},
-  {zone:'q1',text:'7/2 デイズさん訪問（猫アバターAI提案・雑談から入る）',tag:'7/2訪問',icon:'🤝',priority:1,detail:'猫3匹の名前を覚えておく。猫グッズ or 猫用おやつを手土産に。社長が事務作業から解放されたら何をしたいか？を引き出す。「ぴったりですね」のタイミングを作る。'},
-  {zone:'q1',text:'金澤さんのLP・システムをスクショして訪問資料に使う',tag:'7/2訪問',icon:'🤝',priority:1,detail:'介護施設向けLP・研修管理システム・名刺CRMのスクショを整理して「こんなことできます」として見せる。'},
-  {zone:'q1',text:'デイズさんへ猫グッズ or 猫用おやつを手土産に準備',tag:'7/2訪問',icon:'🤝',priority:1,detail:''},
-  {zone:'q1',text:'既存クライアントへのサーバー管理費パッケージを価格設定して請求開始',tag:'サブスク',icon:'💰',priority:1,detail:'バックアップ・メール管理・FTP含めてパッケージ化。責任を持つ分のお金をちゃんと取る。月々5,000円〜設定を検討。'},
-  {zone:'q1',text:'30万円案件の契約フェーズ区切りを書いて合意取る',tag:'契約',icon:'📄',priority:1,detail:'「基礎に入ったら引き返せません」。修正可能な範囲を明示。追加費用・延長の条件を契約書に記載。2部作成して署名。'},
-  {zone:'q2',text:'年末までの月50万円サブスク目標を数値で逆算する',tag:'目標設定',icon:'🎯',priority:2,detail:'何件×いくら＝50万円になるか計算する。管理費・インスタ運用・講座サブスクの組み合わせを書き出す。'},
-  {zone:'q2',text:'講座前ヒアリング枠を作る（別枠・少額1,000円〜課金）',tag:'講座',icon:'📚',priority:2,detail:'なぜやりたいのか・どうなりたいのかを聞く時間。お金を払うことで受講生に本気度が生まれる。電話・オンライン・対面どれでもOK。'},
-  {zone:'q2',text:'キャンバ・インスタ・AI・マインドの4本柱講座設計',tag:'講座',icon:'📚',priority:2,detail:'4本柱でインスタ発信もできる。ふわっとした動機の人を絞り込む設計にする。'},
-  {zone:'q2',text:'インスタ講座の段階課金設計（最初3ヶ月15,000円→逓減）',tag:'講座',icon:'📚',priority:2,detail:'最初3ヶ月は集中支援で15,000円。4ヶ月目以降はノウハウが積み上がったらサポートを減らして金額も下げる。'},
-  {zone:'q2',text:'インスタ運用チーム体制の設計（窓口はゆかりん・実務を外注）',tag:'チーム',icon:'👥',priority:2,detail:'10万円の案件なら2万をゆかりんが受け取り残り8万を担当者へ。既に1人リール5,000円で動いてくれる生徒さんがいる。'},
-  {zone:'q2',text:'金澤さんネットワーク（インスタ専門家）と繋いでもらう',tag:'チーム',icon:'👥',priority:2,detail:'金澤さんの7人グループにインスタ専門家がいる。紹介してもらう約束を実行する。'},
-  {zone:'q2',text:'「うちで全部できます」一気通貫受注体制を整える',tag:'営業',icon:'🤝',priority:2,detail:'サーバー管理〜AIシステム構築まで。「うちで受けます」と言い切れるようになる。中は外注でもいい。大手代理店も同じ。'},
-  {zone:'q2',text:'訪問介護施設向け営業チラシの作成と配布計画',tag:'営業',icon:'🤝',priority:3,detail:'業務改善でこんな悩みないですか→解決策という訴え方。助成金PRは後から。友人（ランニング好き）にポスティング依頼。'},
-  {zone:'q2',text:'AIスキルをさらに磨く・毎日Claude活用を深める',tag:'AI',icon:'🤖',priority:2,detail:'できることが分かるほど「できないことはない」という確信が上がる。毎日15分でいい。記録する。'},
-  {zone:'q2',text:'自分用AIアシスタント（秘書機能）を構築する',tag:'AI',icon:'🤖',priority:3,detail:'金澤さんのように前日夜10時に翌日予定を通知→次の行動まで何分か教えてくれる仕組み。'},
-  {zone:'q2',text:'サーバーバックアップ体制を整える（2段階）',tag:'サブスク',icon:'💰',priority:2,detail:'自動バックアップ＋手動ダウンロード。共有サーバーの改ざんリスクを説明してクライアントに提案。'},
-  {zone:'q2',text:'新規提案書テンプレート作成（フェーズ区切り・修正費用記載）',tag:'契約',icon:'📄',priority:3,detail:'フェーズごとにGO/修正可能を明示。追加費用の発生条件も記載。2部作成・署名が基本。'},
-  {zone:'q3',text:'リスキリング助成金の条件を専門家に確認（金澤さん紹介）',tag:'営業',icon:'🤝',priority:3,detail:'60万の講座料金がリスキリング助成金で圧縮できる可能性。専門家を同席させて説明してもらう。'},
-  {zone:'q3',text:'インスタ運用の実務を生徒さんへ委任する',tag:'チーム',icon:'👥',priority:2,detail:'品質チェックはゆかりんが担当。窓口はゆかりんのまま。丸任せにしてもいい人にはしてもいい。'},
-  {zone:'q3',text:'チラシポスティングを友人に依頼・時給設定',tag:'チーム',icon:'👥',priority:3,detail:'ランニングがてらポスティングしてくれる友人がいる。時給を決めて依頼する。'},
-  {zone:'q3',text:'キックスクリエイターズユニット 見学参加（金澤さんに連絡）',tag:'目標設定',icon:'🎯',priority:4,detail:'万博アフターで関西盛り上げ活動。一生で1回1万円のみ。質の高い人たちが集まるコミュニティ。'},
-  {zone:'q3',text:'アムウェイ経由のサブスク収入の可能性を整理する',tag:'サブスク',icon:'💰',priority:4,detail:''},
-  {zone:'q4',text:'無目的・目的不明確な交流会への参加をやめる（ルール化）',tag:'目標設定',icon:'🎯',priority:5,detail:'「仕事をもらいに来ている人」だらけの交流会は時間の無駄。目的があるコミュニティだけに絞る。'},
-  {zone:'q4',text:'自分に合わないクライアントを断る判断基準を作る',tag:'営業',icon:'🤝',priority:5,detail:'周りのために役立ちたいという前提がない人、自己中な人とは二人三脚は無理。最初のヒアリングで見極める。'},
-  {zone:'q4',text:'助成金・補助金の深掘り勉強は今しない',tag:'目標設定',icon:'🎯',priority:5,detail:'体制が固まってから。今は骨格を固めることに集中。専門家に任せればいい。'},
+var LT = [
+  {zone:'q1',text:'7/2 あゆみさん訪問（ヒアリング重視・提案書なしOK）',tag:'7/2訪問',pri:1,icon:'🤝',memo:'管理費が高いという話を覚えている。弊社ならこれだけ圧縮できますという比較資料を持参。'},
+  {zone:'q1',text:'7/2 デイズさん訪問（猫アバターAI提案）',tag:'7/2訪問',pri:1,icon:'🐱',memo:'猫3匹の名前を覚えておく。猫グッズ or 猫用おやつを手土産に。「ぴったりですね」のタイミングを作る。'},
+  {zone:'q1',text:'金澤さんのLP・システムをスクショして資料に',tag:'7/2訪問',pri:1,icon:'📷',memo:'介護施設向けLP・研修管理システム・名刺CRMのスクショを整理。'},
+  {zone:'q1',text:'デイズさんへ猫グッズ or 猫用おやつを準備',tag:'7/2訪問',pri:1,icon:'🎁',memo:''},
+  {zone:'q1',text:'既存クライアントへのサーバー管理費パッケージを請求開始',tag:'サブスク',pri:1,icon:'💰',memo:'バックアップ・メール管理・FTP含めてパッケージ化。月々5,000円〜。'},
+  {zone:'q1',text:'30万円案件の契約フェーズ区切りを書いて合意取る',tag:'契約',pri:1,icon:'📄',memo:'「基礎に入ったら引き返せません」。修正可能な範囲を明示。2部作成して署名。'},
+  {zone:'q2',text:'年末までの月50万円サブスク目標を数値で逆算する',tag:'目標設定',pri:2,icon:'🎯',memo:'何件×いくら＝50万円になるか計算する。'},
+  {zone:'q2',text:'講座前ヒアリング枠を作る（別枠・1,000円〜課金）',tag:'講座',pri:2,icon:'📚',memo:'なぜやりたいのか・どうなりたいのかを聞く時間。'},
+  {zone:'q2',text:'キャンバ・インスタ・AI・マインドの4本柱講座設計',tag:'講座',pri:2,icon:'📚',memo:'4本柱でインスタ発信もできる。ふわっとした動機の人を絞り込む設計にする。'},
+  {zone:'q2',text:'インスタ講座の段階課金設計（最初3ヶ月15,000円→逓減）',tag:'講座',pri:2,icon:'💰',memo:'最初3ヶ月は集中支援で15,000円。4ヶ月目以降はサポートを減らして金額も下げる。'},
+  {zone:'q2',text:'インスタ運用チーム体制の設計（窓口はゆかりん）',tag:'チーム',pri:2,icon:'👥',memo:'10万円の案件なら2万をゆかりんが受け取り残り8万を担当者へ。'},
+  {zone:'q2',text:'金澤さんネットワーク（インスタ専門家）と繋いでもらう',tag:'チーム',pri:2,icon:'👥',memo:'金澤さんの7人グループにインスタ専門家がいる。'},
+  {zone:'q2',text:'「うちで全部できます」一気通貫受注体制を整える',tag:'営業',pri:2,icon:'🌐',memo:'サーバー管理〜AIシステム構築まで。「うちで受けます」と言い切れるようになる。'},
+  {zone:'q2',text:'訪問介護施設向け営業チラシの作成と配布計画',tag:'営業',pri:3,icon:'📋',memo:'業務改善でこんな悩みないですか→解決策という訴え方。'},
+  {zone:'q2',text:'AIスキルをさらに磨く・毎日Claude活用を深める',tag:'AI',pri:2,icon:'🤖',memo:'できることが分かるほど「できないことはない」という確信が上がる。'},
+  {zone:'q2',text:'自分用AIアシスタント（秘書機能）を構築する',tag:'AI',pri:3,icon:'🤖',memo:'金澤さんのように前日夜10時に翌日予定を通知する仕組み。'},
+  {zone:'q2',text:'サーバーバックアップ体制を整える（2段階）',tag:'サブスク',pri:2,icon:'💾',memo:'自動バックアップ＋手動ダウンロード。'},
+  {zone:'q2',text:'新規提案書テンプレート作成（フェーズ区切り・修正費用記載）',tag:'契約',pri:3,icon:'📄',memo:'フェーズごとにGO/修正可能を明示。追加費用の発生条件も記載。'},
+  {zone:'q3',text:'リスキリング助成金の条件を専門家に確認',tag:'営業',pri:3,icon:'💡',memo:'60万の講座料金がリスキリング助成金で圧縮できる可能性。'},
+  {zone:'q3',text:'インスタ運用の実務を生徒さんへ委任する',tag:'チーム',pri:2,icon:'👥',memo:'品質チェックはゆかりんが担当。窓口はゆかりんのまま。'},
+  {zone:'q3',text:'チラシポスティングを友人に依頼・時給設定',tag:'チーム',pri:3,icon:'📮',memo:'ランニングがてらポスティングしてくれる友人がいる。'},
+  {zone:'q3',text:'キックスクリエイターズユニット 見学参加',tag:'目標設定',pri:4,icon:'✨',memo:'万博アフターで関西盛り上げ活動。一生で1回1万円のみ。'},
+  {zone:'q3',text:'アムウェイ経由のサブスク収入の可能性を整理する',tag:'サブスク',pri:4,icon:'💰',memo:''},
+  {zone:'q4',text:'無目的・目的不明確な交流会への参加をやめる',tag:'目標設定',pri:5,icon:'🚫',memo:'「仕事をもらいに来ている人」だらけの交流会は時間の無駄。'},
+  {zone:'q4',text:'自分に合わないクライアントを断る判断基準を作る',tag:'営業',pri:5,icon:'🛡️',memo:'周りのために役立ちたいという前提がない人とは二人三脚は無理。'},
+  {zone:'q4',text:'助成金・補助金の深掘り勉強は今しない',tag:'目標設定',pri:5,icon:'⏸️',memo:'体制が固まってから。今は骨格を固めることに集中。'}
 ];
 
-const SAVE_KEY='yukarin_v10';
-function loadState(){
-  let json=null;
-  try{json=localStorage.getItem(SAVE_KEY);}catch(e){}
-  if(!json)return false;
+// ===== HELPERS =====
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showBadge(msg,ok){
+  var b=document.getElementById('save-badge');
+  b.textContent=msg;
+  b.className=ok?'saved':'';
+  if(ok)setTimeout(function(){b.textContent='自動保存';b.className='';},2000);
+}
+
+// ===== SAVE / LOAD =====
+function collectState(){
+  var s={td:[],lt:[],done_td:[],done_lt:[]};
+  ['q1','q2','q3','q4'].forEach(function(z){
+    document.querySelectorAll('#area-today-'+z+' .card').forEach(function(c){
+      s.td.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,pri:parseInt(c.dataset.pri)||3,icon:c.dataset.icon||'📌',memo:c.dataset.memo||'',done:false,zone:z});
+    });
+    document.querySelectorAll('#area-longterm-'+z+' .card').forEach(function(c){
+      s.lt.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,pri:parseInt(c.dataset.pri)||3,icon:c.dataset.icon||'📌',memo:c.dataset.memo||'',done:false,zone:z});
+    });
+  });
+  document.querySelectorAll('#done-today .card').forEach(function(c){
+    s.done_td.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,pri:parseInt(c.dataset.pri)||3,icon:c.dataset.icon||'📌',memo:c.dataset.memo||'',done:true,zone:c.dataset.zone||'q1'});
+  });
+  document.querySelectorAll('#done-longterm .card').forEach(function(c){
+    s.done_lt.push({id:c.dataset.id,text:c.dataset.text,tag:c.dataset.tag,pri:parseInt(c.dataset.pri)||3,icon:c.dataset.icon||'📌',memo:c.dataset.memo||'',done:true,zone:c.dataset.zone||'q1'});
+  });
+  return s;
+}
+function saveNow(){
+  var s=collectState();
+  var total=s.td.length+s.lt.length+s.done_td.length+s.done_lt.length;
+  if(total===0){showBadge('自動保存','');return;}
   try{
-    const s=JSON.parse(json);
-    const hasData=(s.lt&&s.lt.length>0)||(s.td&&s.td.length>0)||(s.done_lt&&s.done_lt.length>0)||(s.done_td&&s.done_td.length>0);
-    if(!hasData)return false;
-    (s.lt||[]).forEach(d=>{const a=document.getElementById('area-longterm-'+d.zone);if(a)a.appendChild(buildCard(d,'longterm',d.zone));});
-    (s.td||[]).forEach(d=>{const a=document.getElementById('area-today-'+d.zone);if(a)a.appendChild(buildCard(d,'today',d.zone));});
-    (s.done_lt||[]).forEach(d=>{document.getElementById('done-area-longterm').appendChild(buildCard({...d,done:true},'longterm',d.zone));});
-    (s.done_td||[]).forEach(d=>{document.getElementById('done-area-today').appendChild(buildCard({...d,done:true},'today',d.zone));});
-    ['today','longterm'].forEach(m=>{updateCounts(m);updateLegend(m);});
+    localStorage.setItem(SAVE_KEY,JSON.stringify(s));
+    showBadge('✓ 保存済み ('+total+'件)',true);
+  }catch(e){showBadge('⚠️ 保存失敗','');}
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveNow,600);
+}
+function tryLoad(){
+  try{
+    var raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    var s=JSON.parse(raw);
+    var total=(s.td||[]).length+(s.lt||[]).length+(s.done_td||[]).length+(s.done_lt||[]).length;
+    if(total===0)return false;
+    (s.td||[]).forEach(function(d){var a=document.getElementById('area-today-'+d.zone);if(a)a.appendChild(makeCard(d,'today',d.zone));});
+    (s.lt||[]).forEach(function(d){var a=document.getElementById('area-longterm-'+d.zone);if(a)a.appendChild(makeCard(d,'longterm',d.zone));});
+    (s.done_td||[]).forEach(function(d){d.done=true;var a=document.getElementById('done-today');if(a)a.appendChild(makeCard(d,'today',d.zone));});
+    (s.done_lt||[]).forEach(function(d){d.done=true;var a=document.getElementById('done-longterm');if(a)a.appendChild(makeCard(d,'longterm',d.zone));});
+    ['today','longterm'].forEach(function(m){updateCounts(m);updateLegend(m);});
+    showBadge('✓ 復元しました ('+total+'件)',true);
     return true;
   }catch(e){return false;}
 }
 function loadInitial(){
-  TODAY_INIT.forEach(d=>{if(d.text){const a=document.getElementById('area-today-'+d.zone);if(a)a.appendChild(buildCard(d,'today',d.zone));}});
-  LT_INIT.forEach(d=>{if(d.text){const a=document.getElementById('area-longterm-'+d.zone);if(a)a.appendChild(buildCard(d,'longterm',d.zone));}});
-  ['today','longterm'].forEach(m=>{updateCounts(m);updateLegend(m);});
-  // NOTE: do NOT call saveAll() here - only save when user makes changes
+  TD.forEach(function(d){var a=document.getElementById('area-today-'+d.zone);if(a)a.appendChild(makeCard(d,'today',d.zone));});
+  LT.forEach(function(d){var a=document.getElementById('area-longterm-'+d.zone);if(a)a.appendChild(makeCard(d,'longterm',d.zone));});
+  ['today','longterm'].forEach(function(m){updateCounts(m);updateLegend(m);});
 }
-function attachAllCards(){
-  document.querySelectorAll('.card').forEach(function(el){
-    const matrix=el.dataset.matrix, zone=el.dataset.zone;
-    const textEl=el.querySelector('.card-text-display');
-    if(textEl){
-      textEl.addEventListener('input',function(){el.dataset.text=textEl.textContent;scheduleSave();});
-      textEl.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault();});
-      textEl.addEventListener('mousedown',function(){el.draggable=false;});
-    }
-    const iconBtn=el.querySelector('.card-icon-btn');
-    if(iconBtn)iconBtn.addEventListener('click',function(e){e.stopPropagation();openIconPicker(e,el,iconBtn);});
-    const dtoggle=el.querySelector('.detail-toggle');
-    const darrow=el.querySelector('.detail-arrow');
-    const dlabel=el.querySelector('.detail-label');
-    const dbody=el.querySelector('.detail-body');
-    const dta=el.querySelector('.detail-textarea');
-    if(dtoggle){dtoggle.addEventListener('click',function(){
-      const open=dbody.classList.toggle('open');
-      darrow.classList.toggle('open',open);
-      dlabel.textContent=open?'閉じる':'メモを追加';
-      if(open)setTimeout(()=>dta.focus(),50);
-    });}
-    if(dta){dta.addEventListener('input',function(){
-      el.dataset.detail=dta.value;
-      dlabel.textContent=dta.value.trim()?'メモあり':'メモを追加';
-      scheduleSave();
-    });
-    dta.addEventListener('mousedown',function(e){e.stopPropagation();});}
-    const chk=el.querySelector('.card-check');
-    if(chk)chk.addEventListener('change',function(){toggleDone(el,matrix);if(chk.checked)playChime();});
-    const delBtn=el.querySelector('.del-btn');
-    if(delBtn)delBtn.addEventListener('click',function(e){
-      e.stopPropagation();
-      if(confirm('このタスクを削除しますか？')){el.remove();updateCounts(matrix);updateLegend(matrix);scheduleSave();}
-    });
-    el.addEventListener('dragstart',function(e){dragging=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    el.addEventListener('dragend',function(){el.classList.remove('dragging');dragging=null;document.querySelectorAll('.drag-over').forEach(q=>q.classList.remove('drag-over'));});
-    document.addEventListener('mouseup',function(){if(el)el.draggable=true;});
+
+// ===== CARD =====
+function makeCard(d,matrix,zone){
+  var id=d.id||('c'+(cidx++));
+  var el=document.createElement('div');
+  el.className='card'+(d.done?' done':'');
+  el.draggable=true;
+  el.dataset.id=id;
+  el.dataset.text=d.text||'';
+  el.dataset.tag=d.tag||'';
+  el.dataset.pri=d.pri||3;
+  el.dataset.icon=d.icon||'📌';
+  el.dataset.memo=d.memo||'';
+  el.dataset.done=d.done?'1':'0';
+  el.dataset.matrix=matrix;
+  el.dataset.zone=zone;
+  var tc=TC[d.tag]||null;
+  var tagH=tc?('<span class="ctag" style="background:'+tc.bg+';color:'+tc.c+'">'+esc(d.tag)+'</span>'):'';
+  var hasMemo=!!(d.memo&&d.memo.trim());
+  el.innerHTML=
+    '<div class="ctop">'+
+      '<input type="checkbox" class="ccheck"'+(d.done?' checked':'')+'>'+
+      '<button class="cicon">'+esc(d.icon||'📌')+'</button>'+
+      '<div class="ctext" contenteditable="true" spellcheck="false">'+esc(d.text)+'</div>'+
+      '<button class="cdel">✕</button>'+
+    '</div>'+
+    '<div class="cfoot">'+tagH+'<span class="cpri '+(PC[d.pri]||'p3')+'">'+PL[d.pri]+'</span></div>'+
+    '<button class="cmemo-toggle">'+
+      '<span class="cmemo-arrow'+(hasMemo?' open':'')+'">▶</span>'+
+      '<span class="cmemo-lbl">'+(hasMemo?'メモあり':'メモ追加')+'</span>'+
+    '</button>'+
+    '<div class="cmemo-body'+(hasMemo?' open':'')+'">'+
+      '<textarea class="cmemo-ta">'+esc(d.memo||'')+'</textarea>'+
+    '</div>';
+  // text edit
+  var tx=el.querySelector('.ctext');
+  tx.addEventListener('input',function(){el.dataset.text=tx.textContent;scheduleSave();});
+  tx.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault();});
+  tx.addEventListener('mousedown',function(){el.draggable=false;});
+  document.addEventListener('mouseup',function(){el.draggable=true;});
+  // icon picker
+  var ib=el.querySelector('.cicon');
+  ib.addEventListener('click',function(e){e.stopPropagation();openIP(e,el,ib);});
+  // memo
+  var mt=el.querySelector('.cmemo-toggle');
+  var ma=el.querySelector('.cmemo-arrow');
+  var ml=el.querySelector('.cmemo-lbl');
+  var mb=el.querySelector('.cmemo-body');
+  var mta=el.querySelector('.cmemo-ta');
+  mt.addEventListener('click',function(){
+    var o=mb.classList.toggle('open');
+    ma.classList.toggle('open',o);
+    ml.textContent=o?'閉じる':'メモ追加';
+    if(o)setTimeout(function(){mta.focus();},50);
+  });
+  mta.addEventListener('input',function(){el.dataset.memo=mta.value;ml.textContent=mta.value.trim()?'メモあり':'メモ追加';scheduleSave();});
+  mta.addEventListener('mousedown',function(e){e.stopPropagation();});
+  // check
+  var ck=el.querySelector('.ccheck');
+  ck.addEventListener('change',function(){markDone(el,matrix);if(ck.checked)chime();});
+  // delete
+  var db=el.querySelector('.cdel');
+  db.addEventListener('click',function(e){e.stopPropagation();if(confirm('削除しますか？')){el.remove();updateCounts(matrix);updateLegend(matrix);scheduleSave();}});
+  // drag
+  el.addEventListener('dragstart',function(e){dragging=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+  el.addEventListener('dragend',function(){el.classList.remove('dragging');dragging=null;document.querySelectorAll('.over').forEach(function(q){q.classList.remove('over');});});
+  return el;
+}
+
+function markDone(card,matrix){
+  var done=card.querySelector('.ccheck').checked;
+  card.dataset.done=done?'1':'0';
+  if(done){
+    card.classList.add('done');
+    document.getElementById('done-'+matrix).prepend(card);
+  }else{
+    var z=card.dataset.zone||'q1';
+    document.getElementById('area-'+matrix+'-'+z).appendChild(card);
+    card.classList.remove('done');
+  }
+  updateCounts(matrix);
+  scheduleSave();
+}
+
+// ===== DRAG DROP =====
+function ev(e){e.preventDefault();if(dragging&&e.currentTarget.querySelector('.carea')){e.currentTarget.classList.add('over');}}
+function lv(e){e.currentTarget.classList.remove('over');}
+function drop(e){
+  e.preventDefault();
+  var t=e.currentTarget;
+  t.classList.remove('over');
+  if(!dragging)return;
+  var m=t.id.split('-')[1]; // q-today-q1 -> today
+  var z=t.id.split('-')[2]; // q1
+  var pm=dragging.dataset.matrix;
+  dragging.dataset.zone=z;
+  dragging.dataset.matrix=m;
+  if(dragging.dataset.done==='1'){
+    dragging.querySelector('.ccheck').checked=false;
+    dragging.classList.remove('done');
+    dragging.dataset.done='0';
+  }
+  t.querySelector('.carea').appendChild(dragging);
+  updateCounts(m);
+  if(pm!==m)updateCounts(pm);
+  updateLegend(m);
+  updateLegend(pm);
+  scheduleSave();
+}
+function evDone(e,m){e.preventDefault();if(dragging)document.getElementById('dw-'+m).classList.add('over');}
+function lvDone(e,m){document.getElementById('dw-'+m).classList.remove('over');}
+function dropDone(e,m){
+  e.preventDefault();
+  document.getElementById('dw-'+m).classList.remove('over');
+  if(!dragging)return;
+  var ck=dragging.querySelector('.ccheck');
+  ck.checked=true;
+  dragging.classList.add('done');
+  dragging.dataset.done='1';
+  var pm=dragging.dataset.matrix;
+  dragging.dataset.matrix=m;
+  document.getElementById('done-'+m).prepend(dragging);
+  updateCounts(m);
+  if(pm!==m)updateCounts(pm);
+  updateLegend(m);
+  scheduleSave();
+  chime();
+}
+
+// ===== COUNTS & LEGEND =====
+function updateCounts(m){
+  ['q1','q2','q3','q4'].forEach(function(z){
+    var a=document.getElementById('area-'+m+'-'+z);
+    var el=document.getElementById('cnt-'+m+'-'+z);
+    if(a&&el)el.textContent=a.querySelectorAll('.card').length;
+  });
+  var da=document.getElementById('done-'+m);
+  var de=document.getElementById('dcnt-'+m);
+  if(da&&de)de.textContent=da.querySelectorAll('.card').length;
+}
+function updateLegend(m){
+  var tags={};
+  document.querySelectorAll('.card').forEach(function(c){
+    if(c.dataset.matrix===m&&c.dataset.tag){tags[c.dataset.tag]=true;}
+  });
+  document.querySelectorAll('#done-'+m+' .card').forEach(function(c){
+    if(c.dataset.tag)tags[c.dataset.tag]=true;
+  });
+  var el=document.getElementById('leg-'+m);
+  if(!el)return;
+  el.innerHTML='';
+  Object.keys(tags).forEach(function(t){
+    var tc=TC[t];if(!tc)return;
+    var p=document.createElement('span');
+    p.className='tag-pill';
+    p.style.background=tc.bg;p.style.color=tc.c;
+    p.style.border='1px solid '+tc.c+'33';
+    p.textContent=t;
+    el.appendChild(p);
   });
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-  // Check localStorage first BEFORE clearing anything
-  let savedJson=null;
-  try{savedJson=localStorage.getItem(SAVE_KEY);}catch(e){}
-  
-  // Always clear static HTML cards
-  ['q1','q2','q3','q4'].forEach(z=>{
-    ['today','longterm'].forEach(m=>{const a=document.getElementById('area-'+m+'-'+z);if(a)a.innerHTML='';});
+// ===== MODAL =====
+function openModal(m,z){
+  mCtx={m:m,z:z};
+  document.getElementById('m-text').value='';
+  document.getElementById('m-tag').value='';
+  document.getElementById('m-pri').value='3';
+  document.getElementById('m-memo').value='';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(function(){document.getElementById('m-text').focus();},80);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function submitModal(){
+  var text=document.getElementById('m-text').value.trim();
+  if(!text){alert('タスク内容を入力してください');return;}
+  var d={text:text,tag:document.getElementById('m-tag').value,pri:parseInt(document.getElementById('m-pri').value),memo:document.getElementById('m-memo').value.trim(),icon:'📌',done:false};
+  var a=document.getElementById('area-'+mCtx.m+'-'+mCtx.z);
+  a.appendChild(makeCard(d,mCtx.m,mCtx.z));
+  updateCounts(mCtx.m);updateLegend(mCtx.m);
+  scheduleSave();closeModal();
+}
+
+// ===== DONE AREA TOGGLE =====
+function toggleDoneArea(m){
+  doneOpen[m]=!doneOpen[m];
+  var a=document.getElementById('done-'+m);
+  var arr=document.getElementById('darr-'+m);
+  a.style.display=doneOpen[m]?'flex':'none';
+  arr.className='done-arr'+(doneOpen[m]?' open':'');
+}
+
+// ===== TAB SWITCH =====
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== ICON PICKER =====
+function openIP(e,card,btn){
+  if(activeIP&&activeIP!==document.getElementById('ipicker')){activeIP=null;}
+  var p=document.getElementById('ipicker');
+  p.innerHTML='';
+  ICONS.forEach(function(ic){
+    var b=document.createElement('button');
+    b.className='iopt';b.textContent=ic;
+    b.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      btn.textContent=ic;card.dataset.icon=ic;
+      p.classList.remove('open');scheduleSave();
+    });
+    p.appendChild(b);
   });
-  ['today','longterm'].forEach(m=>{const d=document.getElementById('done-area-'+m);if(d)d.innerHTML='';});
-  
-  // Now load: saved data OR initial data
-  const loaded=loadState();
-  if(!loaded){
-    loadInitial();
-  } else {
-    const b=document.getElementById('save-badge');
-    if(b){b.textContent='✓ 復元しました';b.className='save-badge saved';setTimeout(()=>{b.textContent='自動保存';b.className='save-badge';},2000);}
-  }
-  const d=new Date();
-  const diff=Math.ceil((new Date('2025-07-09')-d)/(1000*60*60*24));
-  const n=document.getElementById('weight-countdown');
-  if(n)n.textContent=diff>0?'あと'+diff+'日！毎日コツコツ！':diff===0?'今日が撮影日！頑張れ！':'撮影お疲れ様！';
+  p.classList.add('open');
+  activeIP=p;
+  var r=btn.getBoundingClientRect();
+  p.style.top=(r.bottom+window.scrollY+4)+'px';
+  p.style.left=Math.min(r.left+window.scrollX,window.innerWidth-170)+'px';
+}
+document.addEventListener('click',function(){
+  var p=document.getElementById('ipicker');
+  if(p)p.classList.remove('open');
+});
+
+// ===== SOUND =====
+function chime(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [{f:783.99,t:0},{f:1046.5,t:.13}].forEach(function(n){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='sine';
+      var st=ctx.currentTime+n.t;
+      o.frequency.setValueAtTime(n.f,st);
+      g.gain.setValueAtTime(0,st);
+      g.gain.linearRampToValueAtTime(.2,st+.01);
+      g.gain.exponentialRampToValueAtTime(.001,st+.35);
+      o.start(st);o.stop(st+.4);
+    });
+  }catch(e){}
+}
+
+// ===== START =====
+window.addEventListener('DOMContentLoaded',function(){
+  // weight countdown
+  var diff=Math.ceil((new Date('2025-07-09')-new Date())/(1000*60*60*24));
+  var wg=document.getElementById('wgoal');
+  if(wg)wg.textContent=diff>0?'あと'+diff+'日！毎日コツコツ！':diff===0?'今日が撮影日！':'撮影お疲れ様！';
+  // load
+  if(!tryLoad())loadInitial();
+  // keyboard shortcuts
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape')closeModal();
     if((e.metaKey||e.ctrlKey)&&e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))submitModal();
   });
 });
-
-// Weight goal countdown
-(function(){
-  const target = new Date('2025-07-09');
-  const now = new Date();
-  const diff = Math.ceil((target - now) / (1000*60*60*24));
-  const el = document.getElementById('weight-countdown');
-  if(el){
-    if(diff > 0) el.textContent = 'あと' + diff + '日！毎日コツコツ！';
-    else if(diff === 0) el.textContent = '今日が撮影日！頑張れ！';
-    else el.textContent = '撮影終了！お疲れ様！';
-  }
-})();
-// Insta goal (editable via localStorage)
-(function(){
-  const fw = localStorage.getItem('insta_fw') || '1,000';
-  const inq = localStorage.getItem('insta_inq') || '月5件';
-  const fwEl = document.getElementById('insta-fw');
-  const inqEl = document.getElementById('insta-inq');
-  if(fwEl) fwEl.textContent = fw;
-  if(inqEl) inqEl.textContent = inq;
-})();
-
 </script>
 </body>
 </html>
