@@ -56,7 +56,8 @@ main{padding:12px 16px}
 .qtitle{font-size:15px;font-weight:600;flex:1}
 .qcount{font-size:13px;color:var(--text3);background:var(--bg);padding:1px 5px;border-radius:8px;border:1px solid var(--border)}
 .qsub{font-size:12px;color:var(--text3);margin-bottom:6px}
-.carea{display:flex;flex-direction:column;gap:4px;min-height:20px}
+.carea{display:flex;flex-direction:column;gap:4px;min-height:20px;padding:2px;border-radius:4px;transition:background .1s}
+.carea.over{background:#F0EBFF;outline:2px dashed #764ba2}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 8px;cursor:grab;user-select:none}
 .card.dragging{opacity:.4;cursor:grabbing}
 .card.done .ctext{text-decoration:line-through;color:var(--text3)}
@@ -454,8 +455,21 @@ function makeCard(d,matrix,zone){
   var db=el.querySelector('.cdel');
   db.addEventListener('click',function(e){e.stopPropagation();if(confirm('削除しますか？')){el.remove();updateCounts(matrix);updateLegend(matrix);scheduleSave();}});
   // drag
-  el.addEventListener('dragstart',function(e){dragging=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+  el.addEventListener('dragstart',function(e){dragging=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.stopPropagation();});
   el.addEventListener('dragend',function(){el.classList.remove('dragging');dragging=null;document.querySelectorAll('.over').forEach(function(q){q.classList.remove('over');});});
+  el.addEventListener('dragover',function(e){
+    e.preventDefault();e.stopPropagation();
+    if(!dragging||dragging===el)return;
+    var area=el.parentNode;
+    if(!area)return;
+    var rect=el.getBoundingClientRect();
+    if(e.clientY<rect.top+rect.height/2){
+      area.insertBefore(dragging,el);
+    }else{
+      area.insertBefore(dragging,el.nextSibling);
+    }
+    scheduleSave();
+  });
   return el;
 }
 
@@ -475,15 +489,19 @@ function markDone(card,matrix){
 }
 
 // ===== DRAG DROP =====
-function ev(e){e.preventDefault();if(dragging&&e.currentTarget.querySelector('.carea')){e.currentTarget.classList.add('over');}}
+function ev(e){
+  e.preventDefault();
+  if(!dragging)return;
+  e.currentTarget.classList.add('over');
+}
 function lv(e){e.currentTarget.classList.remove('over');}
 function drop(e){
   e.preventDefault();
   var t=e.currentTarget;
   t.classList.remove('over');
   if(!dragging)return;
-  var m=t.id.split('-')[1]; // q-today-q1 -> today
-  var z=t.id.split('-')[2]; // q1
+  var m=t.id.split('-')[1];
+  var z=t.id.split('-')[2];
   var pm=dragging.dataset.matrix;
   dragging.dataset.zone=z;
   dragging.dataset.matrix=m;
@@ -492,7 +510,19 @@ function drop(e){
     dragging.classList.remove('done');
     dragging.dataset.done='0';
   }
-  t.querySelector('.carea').appendChild(dragging);
+  // Insert at correct position based on mouse Y
+  var area=t.querySelector('.carea');
+  var cards=Array.from(area.querySelectorAll('.card'));
+  var inserted=false;
+  for(var i=0;i<cards.length;i++){
+    var rect=cards[i].getBoundingClientRect();
+    if(e.clientY<rect.top+rect.height/2){
+      area.insertBefore(dragging,cards[i]);
+      inserted=true;
+      break;
+    }
+  }
+  if(!inserted)area.appendChild(dragging);
   updateCounts(m);
   if(pm!==m)updateCounts(pm);
   updateLegend(m);
